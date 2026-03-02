@@ -1,10 +1,11 @@
 model:
-  n_layers: 4
-  n_heads: 4
-  d_model: 128
-  context_length: 128
+  n_layers: 4  #Transformer-blokker
+  n_heads: 4  #attention heads i hver transformer layer
+  d_model: 128   #dimensjonen på embeddding 
+  context_length: 128   #hvor mange tokens modellen ser samtidig
 
 training:
-  batch_size: 32
-  lr: 3e-4
-  max_iters: 5000
+  batch_size: 32  #hvor mange sekvenser pr treningsstep
+  lr: 3e-4  #learning rate
+  max_iters: 5000  #hvor mange treningsteps
+
