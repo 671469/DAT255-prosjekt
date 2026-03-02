@@ -1,0 +1,10 @@
+model:
+  n_layers: 4
+  n_heads: 4
+  d_model: 128
+  context_length: 128
+
+training:
+  batch_size: 32
+  lr: 3e-4
+  max_iters: 5000
