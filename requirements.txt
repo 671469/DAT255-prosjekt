@@ -1,0 +1,10 @@
+torch>=2.0
+numpy
+tqdm
+pyyaml
+wandb
+optuna
+sentencepiece
+matplotlib
+pandas
+scikit-learn
