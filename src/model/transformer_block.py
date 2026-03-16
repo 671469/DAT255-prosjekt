@@ -1,0 +1,1 @@
+#Transformer block, feed-forward, layer norm-kobling hvis dere vil,

@@ -1,0 +1,1 @@
+#Trainingsloop, optimizer, loss
