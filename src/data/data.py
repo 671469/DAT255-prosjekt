@@ -59,4 +59,3 @@ def load_text():
 
 if __name__ == "__main__": #Kjør kode om filen kjøres
     text = load_text() #Load datasett
-   
