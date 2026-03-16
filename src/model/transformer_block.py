@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from src.model.attention import SelfAttention
+from src.model.attention import MultiHeadAttention
 
 #feed-forward nettverk for blokk
 class FeedForward(nn.Module):
@@ -24,7 +24,7 @@ class TransformerBlock(nn.Module):
     def __init__(self, embed_dim, block_size):
         super().__init__()
 
-        self.attention = SelfAttention(embed_dim, block_size)
+        self.attn = MultiHeadAttention(embed_dim, 4, block_size)
 
         self.ffwd = FeedForward(embed_dim)
 
