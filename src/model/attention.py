@@ -4,9 +4,6 @@ import torch.nn.functional as F
 
 #causual self attention
 class SelfAttention(nn.Module):
-    """
-    Single-head causal self-attention.
-    """
 
     def __init__(self, embed_dim, block_size):
         super().__init__()
