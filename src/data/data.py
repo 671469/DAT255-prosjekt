@@ -2,7 +2,7 @@ import os #Importerer os-modul for å jobbbe med filer og mapper
 import re #importerer re-modul for regulære uttrykk
 import requests #importer requests, laste ned data via HTTP
 
-#Download -> cleaning -> tokenizer -> encoding
+#Download -> cleaning
 
 URL = "https://ocw.mit.edu/ans7870/6/6.006/s08/lecturenotes/files/t8.shakespeare.txt" #URL til datasettet
 
