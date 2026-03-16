@@ -25,7 +25,7 @@ class PositionalEmbedding(nn.Module):
 
         B, T = x.shape
 
-        positions = torch.arange(T, device=x.device)
+        positions = torch.arange(T, device=x.device).unsqueeze(0)
 
         return self.embedding(positions)
 
