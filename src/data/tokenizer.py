@@ -1,7 +1,6 @@
 # Skal bygge vokabular, encode, decode
 import torch
 
-
 def build_tokenizer(text):
     """
     Build vocabulary from dataset.
