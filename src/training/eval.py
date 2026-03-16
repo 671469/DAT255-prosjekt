@@ -11,11 +11,8 @@ block_size = 64
 embed_dim = 128
 num_layers = 4
 
-
+#Ny token
 def generate(model, idx, max_new_tokens):
-    """
-    Generate new tokens from the model.
-    """
 
     for _ in range(max_new_tokens):
 
