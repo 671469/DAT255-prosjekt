@@ -12,7 +12,7 @@ from src.model.model import ShakespeareModel
 
 # Hyperparametere
 batch_size = 32
-block_size = 64
+block_size = 128
 embed_dim = 128
 num_layers = 4
 learning_rate = 3e-4
