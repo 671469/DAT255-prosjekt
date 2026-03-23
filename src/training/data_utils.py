@@ -1,5 +1,7 @@
 import torch
 
+#Train/val split og batching
+
 #dataset splitter
 def train_val_split(data, split_ratio=0.9):
 

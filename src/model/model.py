@@ -4,6 +4,8 @@ import torch.nn as nn
 from src.model.embeddings import Embeddings
 from src.model.transformer_block import TransformerBlock
 
+#Hovedmodellene som setter sammen alt, forward pass, output head
+
 #ShakespeareGPT in action
 class ShakespeareModel(nn.Module):
 

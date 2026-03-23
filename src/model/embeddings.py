@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+#token- og positional embeddings
+
 #Token ID til embed vector
 class TokenEmbedding(nn.Module):
 

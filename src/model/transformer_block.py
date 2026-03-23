@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+#Transformer block, feed-forward evt layer norm-kobling
+
 from src.model.attention import MultiHeadAttention
 
 #feed-forward nettverk for blokk

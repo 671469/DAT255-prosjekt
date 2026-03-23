@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+#self-attention, multi-head attention
+
 #ett "attention-head"
 class Head(nn.Module):
 
