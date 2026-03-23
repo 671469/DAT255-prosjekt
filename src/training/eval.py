@@ -7,7 +7,7 @@ from src.model.model import ShakespeareModel
 
 
 # Modell-hyperparametere (må matche train.py)
-block_size = 64
+block_size = 128
 embed_dim = 128
 num_layers = 4
 
