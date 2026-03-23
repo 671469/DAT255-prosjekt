@@ -8,4 +8,3 @@ training:
   batch_size: 32  #hvor mange sekvenser pr treningsstep
   lr: 3e-4  #learning rate
   max_iters: 15000  #hvor mange treningsteps
-
