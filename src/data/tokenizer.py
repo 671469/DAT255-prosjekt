@@ -1,67 +1,38 @@
 # Skal bygge vokabular, encode, decode
-import torch
 
-def build_tokenizer(text):
-    """
-    Build vocabulary from dataset.
-    """
-    chars = sorted(list(set(text)))  # Alle unike tegn i teksten
+class CharTokenizer:  # Klasse som håndterer tokenizering (tekst <-> tall)
+    def __init__(self, text):  # Kjøres når vi lager tokenizer-objekt
+        chars = sorted(set(text))  # Finn unike tegn og sorter de
 
-    stoi = {ch: i for i, ch in enumerate(chars)}  # string-to-index (tegn -> tall)
-    itos = {i: ch for i, ch in enumerate(chars)}  # index-to-string (tall -> tegn)
+        self.stoi = {ch: i for i, ch in enumerate(chars)}  # tegn -> indeks
+        self.itos = {i: ch for i, ch in enumerate(chars)}  # indeks -> tegn
 
-    vocab_size = len(chars)
-    print(f"Vocabulary size: {vocab_size}")
+        self.vocab_size = len(chars)  # antall unike tegn (vocab size)
 
-    return stoi, itos
+        print(f"Vocabulary size: {self.vocab_size}")  # debug/info
 
+    def encode(self, text):  # tekst -> liste med tall
+        try:
+            return [self.stoi[ch] for ch in text]  # slå opp hvert tegn i stoi
+        except KeyError as e:
+            raise ValueError(f"Unknown character found during encoding: {e}")  # feil hvis tegn mangler
 
-# encoder
-def encode(text, stoi):
-    """
-    Gjør tekst om til tall
-    """
-    return [stoi[ch] for ch in text]
+    def decode(self, ids):  # liste med tall -> tekst
+        return "".join(self.itos[i] for i in ids)  # slå opp hvert tall og join til string
 
 
-# decoder
-def decode(ids, itos):
-    """
-    Gjør tall om til tekst
-    """
-    return "".join([itos[i] for i in ids])
+if __name__ == "__main__":  # kjører bare hvis filen startes direkte
+    from src.data.data import load_text  # import her for å unngå circular imports
 
+    text = load_text()  # last inn renset tekst
 
-# toTensor
-def encode_dataset(text, stoi):
-    """
-    Encode entire dataset and convert to torch tensor
-    """
-    encoded = encode(text, stoi)
-    return torch.tensor(encoded, dtype=torch.long)
+    tokenizer = CharTokenizer(text)  # bygg tokenizer fra teksten
 
+    sample = text[:30]  # ta en liten bit av teksten for test
 
-if __name__ == "__main__":
+    encoded = tokenizer.encode(sample)  # tekst -> tall
+    decoded = tokenizer.decode(encoded)  # tall -> tekst
 
-    # Import here to avoid circular imports
-    from src.data.data import load_text
-
-    # Load dataset
-    text = load_text()
-
-    # Build vocabulary
-    stoi, itos = build_tokenizer(text)
-
-    # Encode dataset
-    data = encode_dataset(text, stoi)
-    print(f"Encoded tensor shape: {data.shape}")
-
-    # Test tokenizer
-    sample = "thou art fair"
-
-    encoded = encode(sample, stoi)
-    decoded = decode(encoded, itos)
-
-    print("\nExample text:", sample)
-    print("Encoded:", encoded)
-    print("Decoded:", decoded)
+    print("\nExample text:", repr(sample))  # vis original
+    print("Encoded:", encoded)  # vis token IDs
+    print("Decoded:", repr(decoded))  # skal være lik original
