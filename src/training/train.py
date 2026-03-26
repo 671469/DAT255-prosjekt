@@ -51,7 +51,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     run = None  # Placeholder for W&B-run
     if log_cfg.get("use_wandb", False):  # Logger bare hvis config sier ja
         run = wandb.init(  # Starter en W&B-run
-            project=log_cfg["project"],  # Prosjektnavn i W&B
+            project=log_cfg["Test"],  # Prosjektnavn i W&B
             name=log_cfg["run_name"],  # Navn på denne run-en
             config=config,  # Logger hele YAML-configen til W&B
         )
