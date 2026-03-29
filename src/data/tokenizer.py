@@ -38,5 +38,22 @@ if __name__ == "__main__":  # kjører bare hvis filen startes direkte
     print("Decoded:", repr(decoded))  # skal være lik original
     
     
-    # !!!!!!! Baseline char-level tokenizer ovenfor. Senere forbedre til SenterPiece/BPE !!!!!!!!
+    # !!!!!!! Først stabil baseline char-level tokenizer ovenfor. Senere forbedre til SenterPiece/BPE (Byte-Pair Encoding) !!!!!!!!
     
+    #Endring av tokenizer påvirker flere andre filer som må endres
+    #Bytt til BPE etter 3-5 runs hvor alt funker, med config endringer. 
+    
+    
+    #når alt kjører uten krasj, loss går ned, modellen lagres, eval kjører, får val loss + perplexity, får generert tekst, output gir mening,
+    #samme config gir samme type resultat, pipeline er stabil. = baseline/referansepunkt.
+    #så trene den et par ganger, med noen endringer i .YAML for sammenligningsgrunnlag. Feks 1 baseline-run for å se at alt fungerer, 
+    #så 1-2 runs med endret modellstørrelse, så 1-2 runs med endret context length eller learning rate.
+    
+    #Så endre tokenizer. 
+    
+    #eksempel til rapporten feks:
+    #“We first establish a baseline model using a simple character-level tokenizer. 
+    # This allows us to validate the training pipeline and obtain a reference for later improvements. 
+    # Once a stable baseline is achieved, we introduce a subword tokenizer (BPE) to investigate whether improved tokenization leads to 
+    # better performance.”
+
