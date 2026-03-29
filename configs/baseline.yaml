@@ -8,3 +8,25 @@ training:
   batch_size: 32  #hvor mange sekvenser pr treningsstep
   lr: 3e-4  #learning rate
   max_iters: 15000  #hvor mange treningsteps
+  ## eval_interval: 100  # Hvor ofte vi evaluerer og logger
+  ## eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
+  ## train_split: 0.9  # Hvor stor del av data som brukes til trening
+  ## device: "cuda"  # Bruk GPU hvis tilgjengelig
+
+## logging:
+  use_wandb: true  # Logge til Weights & Biases
+  entity: "671469-h-gskulen-p-vestlandet"  # W&B entity/team
+  project: "mini-shakespeare-gpt"  # Prosjektnavn i W&B
+  run_name: "baseline"  # Navn på denne run-en
+
+## checkpoint:
+  out_dir: "models"  # Mappe der modellen lagres
+  save_path: "models/shakespeare_model.pt"  # Filsti til lagret modell
+
+## generation:
+  prompt: "Thou art"  # starttekst for generering
+  max_new_tokens: 200  # hvor mange nye tokens som skal genereres
+  temperature: 0.8  # styrer hvor tilfeldig output er
+  do_sample: true  # om vi sampler eller velger mest sannsynlige token
+  top_k: 20  # sample kun fra de k mest sannsynlige tokenene
+  top_p: null  # nucleus sampling, f.eks. 0.9. Sett til null hvis ubrukt

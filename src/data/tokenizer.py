@@ -36,3 +36,7 @@ if __name__ == "__main__":  # kjører bare hvis filen startes direkte
     print("\nExample text:", repr(sample))  # vis original
     print("Encoded:", encoded)  # vis token IDs
     print("Decoded:", repr(decoded))  # skal være lik original
+    
+    
+    # !!!!!!! Baseline char-level tokenizer ovenfor. Senere forbedre til SenterPiece/BPE !!!!!!!!
+    

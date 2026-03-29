@@ -47,12 +47,15 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
 
     train_data, val_data, tokenizer = prepare_data(split_ratio=train_cfg["train_split"])  # Laster tekst, tokeniserer, tensoriserer og splitter data
     vocab_size = tokenizer.vocab_size  # Henter vokabularstørrelse fra tokenizeren
-
+    
     run = None  # Placeholder for W&B-run
     if log_cfg.get("use_wandb", False):  # Logger bare hvis config sier ja
+        run_name = f"{log_cfg['run_name']}_lr{train_cfg['lr']}_layers{model_cfg['n_layers']}"  # Lager automatisk run-navn basert på learning rate og transformer blocks
+
         run = wandb.init(  # Starter en W&B-run
-            project=log_cfg["Test"],  # Prosjektnavn i W&B
-            name=log_cfg["run_name"],  # Navn på denne run-en
+            entity=log_cfg["entity"],  # W&B entity/team
+            project=log_cfg["project"],  # Prosjektnavn i W&B
+            name=run_name,  # Navn på run
             config=config,  # Logger hele YAML-configen til W&B
         )
 
@@ -112,7 +115,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                     "val_loss": val_loss,
                 })
 
-    os.makedirs(ckpt_cfg["out_dir"], exist_ok=True)  # Lager mappe for checkpoints
+    os.makedirs(ckpt_cfg["out_dir"], exist_ok=True)  # Lager mappe for checkpoints i colab
     torch.save(model.state_dict(), ckpt_cfg["save_path"])  # Lagrer modellvektene
 
     print(f"Modellen er lagret i {ckpt_cfg['save_path']}")  # Bekrefter lagring
