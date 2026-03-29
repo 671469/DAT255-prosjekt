@@ -29,4 +29,4 @@ training:
   temperature: 0.8  # styrer hvor tilfeldig output er
   do_sample: true  # om vi sampler eller velger mest sannsynlige token
   top_k: 20  # sample kun fra de k mest sannsynlige tokenene
-  top_p: null  # nucleus sampling, f.eks. 0.9. Sett til null hvis ubrukt
+  # top_p: null  # nucleus sampling, Sett til null hvis ubrukt. Tenker å evt prøve å legge den inn senere, siden den er mer vanlig for GPT modeller
