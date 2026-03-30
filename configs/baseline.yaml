@@ -3,29 +3,29 @@ model:
   n_heads: 4  #attention heads i hver transformer layer
   d_model: 128   #dimensjonen på embeddding 
   context_length: 128   #hvor mange tokens modellen ser samtidig
-  ## ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
-  ## dropout: 0.0 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
+  ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
+  dropout: 0.0 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
   batch_size: 32  #hvor mange sekvenser pr treningsstep
   lr: 3e-4  #learning rate
   max_iters: 15000  #hvor mange treningsteps
-  ## eval_interval: 100  # Hvor ofte vi evaluerer og logger
-  ## eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
-  ## train_split: 0.9  # Hvor stor del av data som brukes til trening
-  ## device: "cuda"  # Bruk GPU hvis tilgjengelig
+  eval_interval: 100  # Hvor ofte vi evaluerer og logger
+  eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
+  train_split: 0.9  # Hvor stor del av data som brukes til trening
+  device: "cuda"  # Bruk GPU hvis tilgjengelig
 
-## logging:
+logging:
   use_wandb: true  # Logge til Weights & Biases
   entity: "671469-h-gskulen-p-vestlandet"  # W&B entity/team
   project: "mini-shakespeare-gpt"  # Prosjektnavn i W&B
   run_name: "baseline"  # Navn på denne run-en
 
-## checkpoint:
+checkpoint:
   out_dir: "models"  # Mappe der modellen lagres
   save_path: "models/shakespeare_model.pt"  # Filsti til lagret modell
 
-## generation:
+generation:
   prompt: "Thou art"  # starttekst for generering
   max_new_tokens: 200  # hvor mange nye tokens som skal genereres
   temperature: 0.8  # styrer hvor tilfeldig output er
