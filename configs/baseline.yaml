@@ -18,7 +18,8 @@ training:
 logging:
   use_wandb: true  # Logge til Weights & Biases
   entity: "671469-h-gskulen-p-vestlandet"  # W&B entity/team
-  project: "mini-shakespeare-gpt"  # Prosjektnavn i W&B
+  project: "Test"
+  #project: "mini-shakespeare-gpt"  # Prosjektnavn i W&B
   run_name: "baseline"  # Navn på denne run-en
 
 checkpoint:
