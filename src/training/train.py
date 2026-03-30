@@ -71,7 +71,8 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
 
     model.train()  # Setter modellen i train-modus
 
-    optimizer = optim.AdamW(model.parameters(), lr=train_cfg["lr"])  # AdamW optimizer
+    lr = float(train_cfg["lr"])
+    optimizer = optim.AdamW(model.parameters(), lr=lr) # AdamW optimizer
     loss_fn = nn.CrossEntropyLoss()  # Loss for neste-token-prediksjon
 
     for step in range(train_cfg["max_iters"]):  # Hovedloop for trening
