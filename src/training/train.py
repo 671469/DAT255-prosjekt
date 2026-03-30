@@ -64,6 +64,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
         embed_dim=model_cfg["d_model"],  # Embedding-dimensjon
         block_size=model_cfg["context_length"],  # Hvor lang kontekst modellen ser
         num_layers=model_cfg["n_layers"],  # Antall lag
+        num_heads=model_cfg["n_heads"],  # Antall attention heads
+        ff_mult=model_cfg["ff_mult"],  # Feed-forward multiplier
+        dropout=model_cfg["dropout"],  # Dropout rate
     ).to(device)  # Flytter modellen til CPU/GPU
 
     model.train()  # Setter modellen i train-modus

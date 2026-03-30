@@ -1,12 +1,13 @@
-import torch
-import torch.nn as nn  # Inneholder feks .Linear
+import torch 
+import torch.nn as nn  # Inneholder nevrale nettverkslag
 import torch.nn.functional as F  # Funksjonelle operasjoner som softmax
 
 # self-attention, multi-head attention
 
+
 # ett "attention-head"
 class Head(nn.Module):
-    def __init__(self, embed_dim, head_size, block_size):
+    def __init__(self, embed_dim, head_size, block_size, dropout):
         super().__init__()  # Initialiserer parent-klassen nn.Module
 
         self.key = nn.Linear(embed_dim, head_size, bias=False)  # Lineær projeksjon fra embed_dim -> head_size (keys)
@@ -14,8 +15,9 @@ class Head(nn.Module):
         self.value = nn.Linear(embed_dim, head_size, bias=False)  # Lineær projeksjon fra embed_dim -> head_size (values)
 
         self.head_size = head_size  # Lagrer head_size for bruk i skalering av attention
+        self.dropout = nn.Dropout(dropout)  # Dropout på attention weights (ingen effekt hvis dropout=0.0)
 
-        self.register_buffer(  # Registrerer en tensor som ikke er en parameter, men som skal flyttes til riktig device
+        self.register_buffer(  # Registrerer en tensor som ikke er en trenbar parameter
             "mask",
             torch.tril(torch.ones(block_size, block_size))  # Nedre triangulær matrise for causal masking
         )
@@ -26,12 +28,12 @@ class Head(nn.Module):
         k = self.key(x)  # Lager key-matrise: (B, T, head_size)
         q = self.query(x)  # Lager query-matrise: (B, T, head_size)
 
-        wei = q @ k.transpose(-2, -1)  # Matrise-multiplikasjon: (B, T, T) = attention scores
-        wei = wei * (self.head_size ** -0.5)  # Skalerer med sqrt(head_size) for stabil trening
+        wei = q @ k.transpose(-2, -1) * (self.head_size ** -0.5)  # Attention scores skalert med head_size
 
         wei = wei.masked_fill(self.mask[:T, :T] == 0, float("-inf"))  # Maskerer fremtidige tokens (causal mask)
 
-        wei = F.softmax(wei, dim=-1)  # Gjør scores om til sannsynligheter langs siste dimensjon
+        wei = F.softmax(wei, dim=-1)  # Gjør scores om til sannsynligheter
+        wei = self.dropout(wei)  # Dropout på attention weights
 
         v = self.value(x)  # Lager value-matrise: (B, T, head_size)
 
@@ -42,18 +44,22 @@ class Head(nn.Module):
 
 # flere "attention-heads"
 class MultiHeadAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads, block_size):
+    def __init__(self, embed_dim, num_heads, block_size, dropout):
         super().__init__()  # Initialiserer parent-klassen nn.Module
 
         head_size = embed_dim // num_heads  # Deler embedding-dimensjonen likt på antall heads
 
         self.heads = nn.ModuleList(  # Lager en liste med flere attention-heads
-            [Head(embed_dim, head_size, block_size) for _ in range(num_heads)]
+            [Head(embed_dim, head_size, block_size, dropout) for _ in range(num_heads)]
         )
 
         self.proj = nn.Linear(embed_dim, embed_dim)  # Lineær projeksjon etter concatenation av heads
+        self.dropout = nn.Dropout(dropout)  # Dropout etter output projection (ingen effekt hvis dropout=0.0)
 
     def forward(self, x):
         out = torch.cat([h(x) for h in self.heads], dim=-1)  # Kjører hver head og concatenater langs feature-dimensjonen
 
-        return self.proj(out)  # Projiserer tilbake til embed_dim
+        out = self.proj(out)  # Projiserer tilbake til embed_dim
+        out = self.dropout(out)  # Dropout etter projeksjon
+
+        return out  # Returnerer output fra multi-head attention
