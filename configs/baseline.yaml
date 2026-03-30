@@ -9,8 +9,8 @@ model:
 training:
   batch_size: 32  #hvor mange sekvenser pr treningsstep
   lr: 3e-4  #learning rate
-  max_iters: 15000  #hvor mange treningsteps
-  eval_interval: 100  # Hvor ofte vi evaluerer og logger
+  max_iters: 200  #hvor mange treningsteps. (SKal stå 15000 her)
+  eval_interval: 50  # Hvor ofte vi evaluerer og logger. (Skal stå 100 her)
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
   device: "cuda"  # Bruk GPU hvis tilgjengelig
