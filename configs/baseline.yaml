@@ -9,7 +9,7 @@ model:
 training:
   batch_size: 32  #hvor mange sekvenser pr treningsstep
   lr: 3e-4  #learning rate
-  max_iters: 1500  #hvor mange treningsteps. (SKal stå 15000 her)
+  max_iters: 5000  #hvor mange treningsteps. (SKal stå 15000 her)
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. (Skal stå 100 her)
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
