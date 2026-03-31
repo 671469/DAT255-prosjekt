@@ -10,6 +10,7 @@ import math #til perplexity modellen
 
 from src.training.data_utils import prepare_data, get_batch  # Datapipeline og batching
 from src.model.model import ShakespeareModel  # Selve modellen
+from src.training.eval import generate #gjenbruker tekstgenerering fra eval.py
 
 
 def load_config(config_path="configs/baseline.yaml"):  # Leser config-fil fra disk
@@ -82,9 +83,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     ).to(device)  # Flytter modellen til CPU/GPU
     
     if run is not None:  # NYTT: lagrer ekstra info i W&B summary for denne run-en
-        wandb.summary["resolved_device"] = device  # NYTT: viser faktisk device brukt
-        wandb.summary["vocab_size"] = vocab_size  # NYTT: viser vocab-størrelsen
-        wandb.summary["parameter_count"] = sum(p.numel() for p in model.parameters())  # NYTT: viser antall parametere i modellen
+        wandb.summary["resolved_device"] = device  # viser faktisk device brukt
+        wandb.summary["vocab_size"] = vocab_size  # viser vocab-størrelsen
+        wandb.summary["parameter_count"] = sum(p.numel() for p in model.parameters())  # viser antall parametere i modellen
         wandb.summary["checkpoint_path"] = ckpt_cfg["save_path"]  # viser hvor modellen lagres
 
     model.train()  # Setter modellen i train-modus
@@ -135,20 +136,18 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 f"train ppl {train_perplexity:.2f} | val ppl {val_perplexity:.2f}") #Oppdatert skriver status til terminal så den inkluderer perplexity
 
             sample_text = None  # placeholder for generert tekstsample til W&B
-            model.eval()  # setter modellen i eval-modus under generering for stabilere tekst
-            with torch.no_grad():  # skrur av gradienter under tekstgenerering
-                prompt_ids = tokenizer.encode(gen_cfg["prompt"])  # NYTT: gjør prompt fra YAML om til token IDs
-                xgen = torch.tensor([prompt_ids], dtype=torch.long, device=device)  # NYTT: lager tensor av prompten
+            input_ids = torch.tensor([tokenizer.encode(gen_cfg["prompt"])], dtype=torch.long).to(device)  # gjør prompt om til token-IDer for generering
 
-                out = model.generate(  # genererer tekst fra prompten
-                    xgen,
-                    max_new_tokens=gen_cfg["max_new_tokens"],
-                    temperature=gen_cfg["temperature"],
-                    do_sample=gen_cfg["do_sample"],
-                    top_k=gen_cfg["top_k"],
-                )
-                sample_text = tokenizer.decode(out[0].tolist())  # gjør genererte token IDs om til lesbar tekst
-            model.train()  # setter modellen tilbake i train-modus etter generering
+            output = generate(  # bruker generate-funksjonen fra eval.py 
+                model,
+                input_ids,
+                max_new_tokens=gen_cfg["max_new_tokens"],  # hvor mange tokens som skal genereres
+                block_size=model_cfg["context_length"],  # hvor mye kontekst modellen bruker
+                temperature=gen_cfg["temperature"],  # bruker temperature fra config
+                top_k=gen_cfg["top_k"],  # bruker top_k fra config
+            )
+
+            sample_text = tokenizer.decode(output[0].tolist())  # gjør genererte token-IDer om til lesbar tekst
                 
             if run is not None:
                 samples_table.add_data(step, sample_text)  # legger tekstsample inn i W&B-tabellen så dere får historikk over genereringer
