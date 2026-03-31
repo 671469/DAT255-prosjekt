@@ -133,12 +133,12 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
            
             print(
                 f"Step {step} | " f"train loss {train_loss:.4f} | val loss {val_loss:.4f} | " 
-                f"train ppl {train_perplexity:.2f} | val ppl {val_perplexity:.2f}") #Oppdatert skriver status til terminal så den inkluderer perplexity
+                f"train ppl {train_perplexity:.2f} | val ppl {val_perplexity:.2f}") #skriver status til terminal
 
             sample_text = None  # placeholder for generert tekstsample til W&B
-            input_ids = torch.tensor([tokenizer.encode(gen_cfg["prompt"])], dtype=torch.long).to(device)  # gjør prompt om til token-IDer for generering
+            input_ids = torch.tensor([tokenizer.encode(gen_cfg["prompt"])], dtype=torch.long).to(device)  # NYTT: gjør prompt om til token-IDer for generering
 
-            output = generate(  # bruker generate-funksjonen fra eval.py 
+            output = generate(  # NYTT: bruker generate-funksjonen fra eval.py i stedet for model.generate()
                 model,
                 input_ids,
                 max_new_tokens=gen_cfg["max_new_tokens"],  # hvor mange tokens som skal genereres
