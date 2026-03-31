@@ -161,7 +161,6 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                     "val_perplexity": val_perplexity,
                     "learning_rate": optimizer.param_groups[0]["lr"], # henter learning rate automatisk fra optimizer
                     "generated_text": sample_text,  # logger siste genererte tekstsample
-                    "samples": samples_table,  # logger tabell med historikk av genererte tekstsamples
                 })
 
     os.makedirs(ckpt_cfg["out_dir"], exist_ok=True)  # Lager mappe for checkpoints i colab
@@ -170,6 +169,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     print(f"Modellen er lagret i {ckpt_cfg['save_path']}")  # Bekrefter lagring
 
     if run is not None:  # Avslutter W&B-run pent
+        wandb.log({"samples": samples_table})  # logger hele samples-tabellen én gang til slutt
         run.finish()
 
 
