@@ -117,6 +117,12 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                     "step": step,
                     "train_loss": train_loss,
                     "val_loss": val_loss,
+<<<<<<< Updated upstream
+=======
+                    "train_perplexity": train_perplexity,
+                    "val_perplexity": val_perplexity,
+                    "learning_rate": lr,
+>>>>>>> Stashed changes
                 })
 
     os.makedirs(ckpt_cfg["out_dir"], exist_ok=True)  # Lager mappe for checkpoints i colab
