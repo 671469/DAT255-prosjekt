@@ -63,7 +63,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
             config=config,  # Logger hele YAML-configen til W&B
         )
         
-        samples_table = wandb.Table(columns=["step", "text"])  # oppretter W&B-tabell med step og generert tekst
+        samples_table = wandb.Table(columns=["step", "train_loss", "val_loss", "val_ppl", "text"])  # oppretter W&B-tabell med step og generert tekst +loss
 
         wandb.define_metric("step")  # definerer step som felles x-akse i W&B
         wandb.define_metric("train_loss", step_metric="step")  # viser train_loss mot step
@@ -150,7 +150,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
             sample_text = tokenizer.decode(output[0].tolist())  # gjør genererte token-IDer om til lesbar tekst
                 
             if run is not None:
-                samples_table.add_data(step, sample_text)  # legger tekstsample inn i W&B-tabellen så dere får historikk over genereringer
+                samples_table.add_data(step, train_loss, val_loss, val_perplexity, sample_text)  # legger tekstsample inn i W&B-tabellen så dere får historikk over genereringer
             
             if run is not None:  # Logger til W&B hvis aktiv
                 wandb.log({  # Sender metrics til dashboardet
