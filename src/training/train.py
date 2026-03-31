@@ -42,6 +42,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     train_cfg = config["training"]  # Henter treningsparametere
     log_cfg = config["logging"]  # Henter logging-parametere
     ckpt_cfg = config["checkpoint"]  # Henter checkpoint-parametere
+    gen_cfg = config["generation"]  # henter genereringsparametere fra YAML så prompt/temperature/top_k kan brukes under logging
 
     requested_device = train_cfg.get("device", "cpu")  # Leser ønsket device fra config
     device = "cuda" if requested_device == "cuda" and torch.cuda.is_available() else "cpu"  # Faller tilbake til CPU hvis GPU ikke finnes
@@ -50,6 +51,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     vocab_size = tokenizer.vocab_size  # Henter vokabularstørrelse fra tokenizeren
     
     run = None  # Placeholder for W&B-run
+    samples_table = None  # tabell for å lagre historikk av genererte tekstsamples i W&B
     if log_cfg.get("use_wandb", False):  # Logger bare hvis config sier ja
         run_name = f"{log_cfg['run_name']}_lr{train_cfg['lr']}_layers{model_cfg['n_layers']}"  # Lager automatisk run-navn basert på learning rate og transformer blocks
 
@@ -59,6 +61,15 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
             name=run_name,  # Navn på run
             config=config,  # Logger hele YAML-configen til W&B
         )
+        
+        samples_table = wandb.Table(columns=["step", "text"])  # oppretter W&B-tabell med step og generert tekst
+
+        wandb.define_metric("step")  # definerer step som felles x-akse i W&B
+        wandb.define_metric("train_loss", step_metric="step")  # viser train_loss mot step
+        wandb.define_metric("val_loss", step_metric="step")  # viser val_loss mot step
+        wandb.define_metric("train_perplexity", step_metric="step")  # viser train_perplexity mot step
+        wandb.define_metric("val_perplexity", step_metric="step")  # viser val_perplexity mot step
+        wandb.define_metric("learning_rate", step_metric="step")  # viser learning rate mot step
 
     model = ShakespeareModel(  # Lager modellen
         vocab_size=vocab_size,  # Output-dimensjon må matche vocab
@@ -69,6 +80,12 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
         ff_mult=model_cfg["ff_mult"],  # Feed-forward multiplier
         dropout=model_cfg["dropout"],  # Dropout rate
     ).to(device)  # Flytter modellen til CPU/GPU
+    
+    if run is not None:  # NYTT: lagrer ekstra info i W&B summary for denne run-en
+        wandb.summary["resolved_device"] = device  # NYTT: viser faktisk device brukt
+        wandb.summary["vocab_size"] = vocab_size  # NYTT: viser vocab-størrelsen
+        wandb.summary["parameter_count"] = sum(p.numel() for p in model.parameters())  # NYTT: viser antall parametere i modellen
+        wandb.summary["checkpoint_path"] = ckpt_cfg["save_path"]  # viser hvor modellen lagres
 
     model.train()  # Setter modellen i train-modus
 
@@ -110,15 +127,32 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 train_cfg["batch_size"],
                 device,
             )
-            train_perplexity = math.exp(train_loss) #eventuelt endre til eks. (min(train_loss, 20))
-            val_perplexity = math.exp(val_loss) #eventuelt endre til eks. (min(val_loss, 20))
+            train_perplexity = math.exp(min(train_loss, 20)) # capper loss ved 20 for å unngå ekstreme perplexity-tall og få finere grafer
+            val_perplexity = math.exp(min(val_loss, 20)) # capper loss ved 20 for å unngå ekstreme perplexity-tall og få finere grafer
            
-            print(f"Step {step} | train loss {train_loss:.4f} | val loss {val_loss:.4f}")  # Skriver status til terminal
-            
             print(
                 f"Step {step} | " f"train loss {train_loss:.4f} | val loss {val_loss:.4f} | " 
                 f"train ppl {train_perplexity:.2f} | val ppl {val_perplexity:.2f}") #Oppdatert skriver status til terminal så den inkluderer perplexity
 
+            sample_text = None  # placeholder for generert tekstsample til W&B
+            model.eval()  # setter modellen i eval-modus under generering for stabilere tekst
+            with torch.no_grad():  # skrur av gradienter under tekstgenerering
+                prompt_ids = tokenizer.encode(gen_cfg["prompt"])  # NYTT: gjør prompt fra YAML om til token IDs
+                xgen = torch.tensor([prompt_ids], dtype=torch.long, device=device)  # NYTT: lager tensor av prompten
+
+                out = model.generate(  # genererer tekst fra prompten
+                    xgen,
+                    max_new_tokens=gen_cfg["max_new_tokens"],
+                    temperature=gen_cfg["temperature"],
+                    do_sample=gen_cfg["do_sample"],
+                    top_k=gen_cfg["top_k"],
+                )
+                sample_text = tokenizer.decode(out[0].tolist())  # gjør genererte token IDs om til lesbar tekst
+            model.train()  # setter modellen tilbake i train-modus etter generering
+                
+            if run is not None:
+                samples_table.add_data(step, sample_text)  # legger tekstsample inn i W&B-tabellen så dere får historikk over genereringer
+            
             if run is not None:  # Logger til W&B hvis aktiv
                 wandb.log({  # Sender metrics til dashboardet
                     "step": step,
@@ -126,7 +160,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                     "val_loss": val_loss,
                     "train_perplexity": train_perplexity,
                     "val_perplexity": val_perplexity,
-                    "learning_rate": optimizer.param_groups[0]["lr"], #Henter learning rate automatisk fra optimizer
+                    "learning_rate": optimizer.param_groups[0]["lr"], # henter learning rate automatisk fra optimizer
+                    "generated_text": sample_text,  # logger siste genererte tekstsample
+                    "samples": samples_table,  # logger tabell med historikk av genererte tekstsamples
                 })
 
     os.makedirs(ckpt_cfg["out_dir"], exist_ok=True)  # Lager mappe for checkpoints i colab
