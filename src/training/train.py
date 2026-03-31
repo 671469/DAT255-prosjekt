@@ -110,10 +110,10 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 train_cfg["batch_size"],
                 device,
             )
-            #train_perplexity = math.exp(train_loss) #eventuelt endre til eks. (min(train_loss, 20))
-            #val_perplexity = math.exp(val_loss) #eventuelt endre til eks. (min(val_loss, 20))
+            train_perplexity = math.exp(train_loss) #eventuelt endre til eks. (min(train_loss, 20))
+            val_perplexity = math.exp(val_loss) #eventuelt endre til eks. (min(val_loss, 20))
            
-            #print(f"Step {step} | train loss {train_loss:.4f} | val loss {val_loss:.4f}")  # Skriver status til terminal
+            print(f"Step {step} | train loss {train_loss:.4f} | val loss {val_loss:.4f}")  # Skriver status til terminal
             
             print(
                 f"Step {step} | " f"train loss {train_loss:.4f} | val loss {val_loss:.4f} | " 
@@ -124,8 +124,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                     "step": step,
                     "train_loss": train_loss,
                     "val_loss": val_loss,
-                    "train_perplexity": math.exp(train_loss),
-                    "val_perplexity": math.exp(val_loss),
+                    "train_perplexity": train_perplexity,
+                    "val_perplexity": val_perplexity,
+                    "learning_rate": optimizer.param_groups[0]["lr"], #Henter learning rate automatisk fra optimizer
                 })
 
     os.makedirs(ckpt_cfg["out_dir"], exist_ok=True)  # Lager mappe for checkpoints i colab
