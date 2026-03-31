@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn  # Loss-funksjoner
 import torch.optim as optim  # Optimizers
 import wandb  # Weights & Biases logging
+import math #til perplexity modellen 
 
 from src.training.data_utils import prepare_data, get_batch  # Datapipeline og batching
 from src.model.model import ShakespeareModel  # Selve modellen
@@ -109,14 +110,22 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 train_cfg["batch_size"],
                 device,
             )
-
-            print(f"Step {step} | train loss {train_loss:.4f} | val loss {val_loss:.4f}")  # Skriver status til terminal
+            #train_perplexity = math.exp(train_loss) #eventuelt endre til eks. (min(train_loss, 20))
+            #val_perplexity = math.exp(val_loss) #eventuelt endre til eks. (min(val_loss, 20))
+           
+            #print(f"Step {step} | train loss {train_loss:.4f} | val loss {val_loss:.4f}")  # Skriver status til terminal
+            
+            print(
+                f"Step {step} | " f"train loss {train_loss:.4f} | val loss {val_loss:.4f} | " 
+                f"train ppl {train_perplexity:.2f} | val ppl {val_perplexity:.2f}") #Oppdatert skriver status til terminal så den inkluderer perplexity
 
             if run is not None:  # Logger til W&B hvis aktiv
                 wandb.log({  # Sender metrics til dashboardet
                     "step": step,
                     "train_loss": train_loss,
                     "val_loss": val_loss,
+                    "train_perplexity": math.exp(train_loss),
+                    "val_perplexity": math.exp(val_loss),
                 })
 
     os.makedirs(ckpt_cfg["out_dir"], exist_ok=True)  # Lager mappe for checkpoints i colab
