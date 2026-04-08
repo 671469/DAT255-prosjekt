@@ -7,7 +7,7 @@ model:
   dropout: 0.0 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
-  batch_size: 16  #hvor mange sekvenser pr treningsstep (var 32)
+  batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32)
   lr: 4.5e-3  #learning rate (var 3e-4)
   max_iters: 15000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
