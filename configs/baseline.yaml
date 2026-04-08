@@ -1,17 +1,17 @@
 model:
   n_layers: 4  #Transformer-blokker
   n_heads: 4  #attention heads i hver transformer layer
-  d_model: 128   #dimensjonen på embeddding 
-  context_length: 128   #hvor mange tokens modellen ser samtidig
+  d_model: 256   #dimensjonen på embeddding 
+  context_length: 256   #hvor mange tokens modellen ser samtidig
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
   dropout: 0.2 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
   batch_size: 32  #hvor mange sekvenser pr treningsstep
-  lr: 3e-4  #learning rate
+  lr: 2e-4  #learning rate
   max_iters: 15000  #hvor mange treningsteps. (SKal stå 15000 her)
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. (Skal stå 100 her)
-  eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
+  eval_iters: 40  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
   device: "cuda"  # Bruk GPU hvis tilgjengelig
 
@@ -28,8 +28,8 @@ checkpoint:
 
 generation:
   prompt: "Thou art"  # starttekst for generering
-  max_new_tokens: 200  # hvor mange nye tokens som skal genereres
-  temperature: 0.7  # styrer hvor tilfeldig output er
+  max_new_tokens: 500  # hvor mange nye tokens som skal genereres
+  temperature: 0.6  # styrer hvor tilfeldig output er
   do_sample: true  # om vi sampler eller velger mest sannsynlige token
   top_k: 40  # sample kun fra de k mest sannsynlige tokenene
   # top_p: null  # nucleus sampling, Sett til null hvis ubrukt. Tenker å evt prøve å legge den inn senere, siden den er mer vanlig for GPT modeller
