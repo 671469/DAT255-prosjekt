@@ -13,7 +13,7 @@ training:
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
-  device: "cuda"  # Bruk GPU hvis tilgjengelig
+  device: "cuda"  # Bruk GPU hvis tilgjengelig.
 
 logging:
   use_wandb: true  # Logge til Weights & Biases
