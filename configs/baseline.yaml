@@ -4,12 +4,12 @@ model:
   d_model: 256   #dimensjonen på embeddding aka n_embd (var 128)
   context_length: 256   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
-  dropout: 0.2 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
+  dropout: 0.1 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
   batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32)
   lr: 3e-4  #learning rate (var 3e-4)
-  max_iters: 15000  #hvor mange treningsteps. SKal stå 15000 her
+  max_iters: 30000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
@@ -41,6 +41,6 @@ generation:
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 2000  # størrelse på BPE-vokabular
+  vocab_size: 512  # størrelse på BPE-vokabular
   min_frequency: 2  # minste frekvens for BPE-token
   model_path: "models/bpe_tokenizer.json"  # hvor tokenizer lagres / lastes fra
