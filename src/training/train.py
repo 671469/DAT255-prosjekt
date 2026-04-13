@@ -216,7 +216,12 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 })
 
             if use_early_stopping and patience_counter >= patience:  # Stopper tidlig hvis modellen ikke har forbedret seg på mange eval-runder
-                print(f"Early stopping ved step {step} - ingen forbedring i val-loss de siste {patience} eval-rundene")  # Skriver ut hvorfor vi stopper
+                print(
+                    f"\n🛑 Early stopping triggered!\n"
+                    f"Step: {step}\n"
+                    f"Beste val_loss: {best_val_loss:.4f} (step {best_step})\n"
+                    f"Ingen forbedring siste {patience} eval-runder\n"
+                )  # Skriver tydelig ut hvorfor treningen stoppet
                 break
 
     if best_step == -1:  # Safety check hvis ingen modell ble lagret underveis
@@ -226,10 +231,44 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     else:
         print(f"Beste modell ble lagret fra step {best_step} i {ckpt_cfg['save_path']}")  # Bekrefter hvilket step som ga beste modell
 
-    if run is not None:
+    if run is not None:  # Kjører en siste generering med beste lagrede checkpoint og logger den i samme W&B-run
+        final_model = ShakespeareModel(  # Lager en ny modellinstans med samme arkitektur
+            vocab_size=vocab_size,  # Output-dimensjon må matche vocab
+            embed_dim=model_cfg["d_model"],  # Embedding-dimensjon
+            block_size=model_cfg["context_length"],  # Hvor lang kontekst modellen ser
+            num_layers=model_cfg["n_layers"],  # Antall lag
+            num_heads=model_cfg["n_heads"],  # Antall attention heads
+            ff_mult=model_cfg["ff_mult"],  # Feed-forward multiplier
+            dropout=model_cfg["dropout"],  # Dropout rate
+        ).to(device)  # Flytter modellen til CPU/GPU
+
+        final_model.load_state_dict(torch.load(ckpt_cfg["save_path"], map_location=device))  # Laster inn beste lagrede modell fra disk
+        final_model.eval()  # Setter modellen i eval-modus
+
+        final_prompt = gen_cfg["prompt"]  # Bruker samme prompt som i config
+        final_input_ids = torch.tensor([tokenizer.encode(final_prompt)], dtype=torch.long).to(device)  # Gjør prompt om til token-IDer
+
+        final_output = generate(  # Genererer tekst med beste lagrede modell
+            final_model,
+            final_input_ids,
+            max_new_tokens=gen_cfg["max_new_tokens"],  # Hvor mange tokens som skal genereres
+            block_size=model_cfg["context_length"],  # Hvor mye kontekst modellen bruker
+            temperature=gen_cfg["temperature"],  # Bruker temperature fra config
+            top_k=gen_cfg["top_k"],  # Bruker top_k fra config
+        )
+
+        final_text = tokenizer.decode(final_output[0].tolist())  # Gjør genererte token-IDer om til lesbar tekst
+
+        final_samples_table = wandb.Table(columns=["best_step", "prompt", "text"])  # Lager egen tabell for final eval-sample
+        final_samples_table.add_data(best_step, final_prompt, final_text)  # Legger inn sluttgenereringen i tabellen
+
+        wandb.log({"final_samples": final_samples_table})  # Logger final eval-tabellen i samme run
         wandb.summary["best_val_loss"] = best_val_loss  # Lagrer beste validation loss i W&B summary
         wandb.summary["best_step"] = best_step  # Lagrer hvilket step som ga beste modell i W&B summary
-        wandb.log({"samples": samples_table})
+        wandb.summary["final_prompt"] = final_prompt  # Lagrer prompt brukt til sluttgenerering i W&B summary
+        wandb.summary["final_generated_text"] = final_text  # Lagrer sluttgenereringen også i W&B summary
+
+        wandb.log({"samples": samples_table})  # Logger hele samples-tabellen én gang til slutt
         run.finish()
 
 
