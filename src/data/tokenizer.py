@@ -7,9 +7,8 @@ from tokenizers.trainers import BpeTrainer  # trainer for å lære BPE-vokabular
 from tokenizers.pre_tokenizers import ByteLevel  # splitter tekst i byte-level tokens
 from tokenizers.decoders import ByteLevel as ByteLevelDecoder  # decoder tilbake til tekst
 
-
+# Char Tokenizer baseline
 class CharTokenizer:
-    # Behold denne som baseline for sammenligning
 
     def __init__(self, text):
         chars = sorted(set(text))  # finner alle unike tegn i teksten
@@ -27,22 +26,17 @@ class CharTokenizer:
     def decode(self, ids):
         return "".join(self.itos[i] for i in ids)  # konverter IDs tilbake til tekst
 
-
+# BPE Tokenzer
 class BPETokenizer:
-    """
-    Enkel BPE-tokenizer med omtrent samme grensesnitt som CharTokenizer.
-    """
 
     def __init__(self, tokenizer: Tokenizer):
         self.tokenizer = tokenizer  # lagrer selve HF-tokenizeren
         self.vocab_size = tokenizer.get_vocab_size()  # antall tokens i vokabular
         print(f"BPE vocabulary size: {self.vocab_size}")  # debug-print
 
+    # Trener BPE tokenizer på teksten og lagrer
     @classmethod
     def train(cls, text: str, save_path: str, vocab_size: int = 2000, min_frequency: int = 2):
-        """
-        Trener en BPE-tokenizer på teksten og lagrer den til fil.
-        """
 
         tokenizer = Tokenizer(BPE(unk_token="[UNK]"))  # lager ny BPE-tokenizer med unknown-token
 
