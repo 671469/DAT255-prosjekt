@@ -17,8 +17,8 @@ training:
   weight_decay: 0.00 # Weight decay for regularisering i AdamW
   grad_clip: 0.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
-  patience: 10  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente
-  min_delta: 0.001  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring"
+  patience: 20  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
+  min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
 
 logging:
   use_wandb: true  # Logge til Weights & Biases
@@ -32,15 +32,15 @@ checkpoint:
   save_path: "models/shakespeare_model.pt"  # Filsti til lagret modell
 
 generation:
-  prompt: "Thou art"  # starttekst for generering
+  prompt: "ROMEO:" # starttekst for generering, (var "Thou art")
   max_new_tokens: 1000  # hvor mange nye tokens som skal genereres (var 200)
-  temperature: 0.7  # styrer hvor tilfeldig output er
+  temperature: 0.7  # styrer hvor tilfeldig output er. (var 0.7)
   do_sample: true  # om vi sampler eller velger mest sannsynlige token
-  top_k: 20  # sample kun fra de k mest sannsynlige tokenene
+  top_k: 40  # sample kun fra de k mest sannsynlige tokenene. (var 20)
   # top_p: null  # nucleus sampling, Sett til null hvis ubrukt. Tenker å evt prøve å legge den inn senere, siden den er mer vanlig for GPT modeller
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 512  # størrelse på BPE-vokabular
+  vocab_size: 1024  # størrelse på BPE-vokabular (var 512)
   min_frequency: 2  # minste frekvens for BPE-token
   model_path: "models/bpe_tokenizer.json"  # hvor tokenizer lagres / lastes fra
