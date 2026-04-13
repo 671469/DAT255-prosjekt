@@ -33,3 +33,9 @@ generation:
   do_sample: true  # om vi sampler eller velger mest sannsynlige token
   top_k: 20  # sample kun fra de k mest sannsynlige tokenene
   # top_p: null  # nucleus sampling, Sett til null hvis ubrukt. Tenker å evt prøve å legge den inn senere, siden den er mer vanlig for GPT modeller
+
+tokenizer:
+  type: "bpe"  # "char" eller "bpe"
+  vocab_size: 2000  # størrelse på BPE-vokabular
+  min_frequency: 2  # minste frekvens for BPE-token
+  model_path: "models/bpe_tokenizer.json"  # hvor tokenizer lagres / lastes fra
