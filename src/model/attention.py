@@ -1,65 +1,105 @@
-import torch 
-import torch.nn as nn  # Inneholder nevrale nettverkslag
-import torch.nn.functional as F  # Funksjonelle operasjoner som softmax
+# Skal bygge vokabular, encode, decode
 
-# self-attention, multi-head attention
+from pathlib import Path  # brukes for å håndtere filstier på en ryddig måte
+from tokenizers import Tokenizer  # hovedklasse for tokenizer fra HF
+from tokenizers.models import BPE  # BPE-modell (subword-tokenizer)
+from tokenizers.trainers import BpeTrainer  # trainer for å lære BPE-vokabular
+from tokenizers.pre_tokenizers import ByteLevel  # splitter tekst i byte-level tokens
+from tokenizers.decoders import ByteLevel as ByteLevelDecoder  # decoder tilbake til tekst
 
+# Char Tokenizer baseline
+class CharTokenizer:
 
-# ett "attention-head"
-class Head(nn.Module):
-    def __init__(self, embed_dim, head_size, block_size, dropout):
-        super().__init__()  # Initialiserer parent-klassen nn.Module
+    def __init__(self, text):
+        chars = sorted(set(text))  # finner alle unike tegn i teksten
+        self.stoi = {ch: i for i, ch in enumerate(chars)}  # map tegn -> index
+        self.itos = {i: ch for i, ch in enumerate(chars)}  # map index -> tegn
+        self.vocab_size = len(chars)  # antall unike tegn
+        print(f"Character vocabulary size: {self.vocab_size}")  # debug-print
 
-        self.key = nn.Linear(embed_dim, head_size, bias=False)  # Lineær projeksjon fra embed_dim -> head_size (keys)
-        self.query = nn.Linear(embed_dim, head_size, bias=False)  # Lineær projeksjon fra embed_dim -> head_size (queries)
-        self.value = nn.Linear(embed_dim, head_size, bias=False)  # Lineær projeksjon fra embed_dim -> head_size (values)
+    def encode(self, text):
+        try:
+            return [self.stoi[ch] for ch in text]  # konverter hvert tegn til ID
+        except KeyError as e:
+            raise ValueError(f"Unknown character found during encoding: {e}")  # feil hvis ukjent tegn
 
-        self.head_size = head_size  # Lagrer head_size for bruk i skalering av attention
-        self.dropout = nn.Dropout(dropout)  # Dropout på attention weights (ingen effekt hvis dropout=0.0)
+    def decode(self, ids):
+        return "".join(self.itos[i] for i in ids)  # konverter IDs tilbake til tekst
 
-        self.register_buffer(  # Registrerer en tensor som ikke er en trenbar parameter
-            "mask",
-            torch.tril(torch.ones(block_size, block_size))  # Nedre triangulær matrise for causal masking
+# BPE Tokenzer
+class BPETokenizer:
+
+    def __init__(self, tokenizer: Tokenizer):
+        self.tokenizer = tokenizer  # lagrer selve HF-tokenizeren
+        self.vocab_size = tokenizer.get_vocab_size()  # antall tokens i vokabular
+        print(f"BPE vocabulary size: {self.vocab_size}")  # debug-print
+
+    # Trener BPE tokenizer på teksten og lagrer
+    @classmethod
+    def train(cls, text: str, save_path: str, vocab_size: int = 2000, min_frequency: int = 2):
+
+        tokenizer = Tokenizer(BPE(unk_token="[UNK]"))  # lager ny BPE-tokenizer med unknown-token
+
+        tokenizer.pre_tokenizer = ByteLevel()  # splitter tekst i byte-level tokens før BPE
+        tokenizer.decoder = ByteLevelDecoder()  # gjør decoding tilbake til tekst korrekt
+
+        trainer = BpeTrainer(
+            vocab_size=vocab_size,  # hvor mange tokens vi vil ha i vokabularet
+            min_frequency=min_frequency,  # hvor ofte et token må forekomme for å bli med
+            special_tokens=["[PAD]", "[UNK]", "[BOS]", "[EOS]"],  # spesielle tokens
         )
 
-    def forward(self, x):
-        B, T, C = x.shape  # B=batch size, T=sekvenslengde, C=embed_dim
+        save_path = Path(save_path)  # gjør om til Path-objekt
+        save_path.parent.mkdir(parents=True, exist_ok=True)  # lager mappe hvis den ikke finnes
 
-        k = self.key(x)  # Lager key-matrise: (B, T, head_size)
-        q = self.query(x)  # Lager query-matrise: (B, T, head_size)
+        temp_text_path = save_path.parent / "tokenizer_training_text.txt"  # midlertidig fil for trening
+        temp_text_path.write_text(text, encoding="utf-8")  # skriver tekst til fil
 
-        wei = q @ k.transpose(-2, -1) * (self.head_size ** -0.5)  # Attention scores skalert med head_size
+        tokenizer.train([str(temp_text_path)], trainer)  # trener tokenizer på teksten
+        tokenizer.save(str(save_path))  # lagrer tokenizer til disk
 
-        wei = wei.masked_fill(self.mask[:T, :T] == 0, float("-inf"))  # Maskerer fremtidige tokens (causal mask)
+        print(f"Saved BPE tokenizer to {save_path}")  # debug-print
+        return cls(tokenizer)  # returnerer ferdig tokenizer-objekt
 
-        wei = F.softmax(wei, dim=-1)  # Gjør scores om til sannsynligheter
-        wei = self.dropout(wei)  # Dropout på attention weights
+    @classmethod
+    def load(cls, path: str):
+        tokenizer = Tokenizer.from_file(path)  # laster tokenizer fra fil
+        return cls(tokenizer)  # pakker i vår klasse
 
-        v = self.value(x)  # Lager value-matrise: (B, T, head_size)
+    def encode(self, text: str):
+        encoding = self.tokenizer.encode(text)  # encoder tekst til tokens
+        return encoding.ids  # returnerer bare ID-listen
 
-        out = wei @ v  # Multipliserer attention weights med values: (B, T, head_size)
+    def decode(self, ids):
+        return self.tokenizer.decode(ids)  # gjør tokens tilbake til tekst
 
-        return out  # Returnerer output fra én attention-head
 
+if __name__ == "__main__":
+    from src.data.data import load_text  # importerer funksjon for å laste tekst
 
-# flere "attention-heads"
-class MultiHeadAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads, block_size, dropout):
-        super().__init__()  # Initialiserer parent-klassen nn.Module
+    text = load_text()  # laster hele datasettet som tekst
 
-        head_size = embed_dim // num_heads  # Deler embedding-dimensjonen likt på antall heads
+    print("Testing CharTokenizer...")  # test av char tokenizer
+    char_tokenizer = CharTokenizer(text)  # lager tokenizer
+    sample = text[:100]  # tar liten sample av tekst
+    encoded = char_tokenizer.encode(sample)  # encoder sample
+    decoded = char_tokenizer.decode(encoded)  # decoder tilbake
 
-        self.heads = nn.ModuleList(  # Lager en liste med flere attention-heads
-            [Head(embed_dim, head_size, block_size, dropout) for _ in range(num_heads)]
-        )
+    print("\nChar example text:", repr(sample))  # viser original tekst
+    print("Char encoded:", encoded[:30], "...")  # viser første tokens
+    print("Char decoded:", repr(decoded))  # viser rekonstruert tekst
 
-        self.proj = nn.Linear(embed_dim, embed_dim)  # Lineær projeksjon etter concatenation av heads
-        self.dropout = nn.Dropout(dropout)  # Dropout etter output projection (ingen effekt hvis dropout=0.0)
+    print("\nTesting BPETokenizer...")  # test av BPE tokenizer
+    bpe_tokenizer = BPETokenizer.train(
+        text=text,  # tekst å trene på
+        save_path="models/bpe_tokenizer.json",  # hvor tokenizer lagres
+        vocab_size=2000,  # størrelse på vokabular
+        min_frequency=2,  # min frekvens for tokens
+    )
 
-    def forward(self, x):
-        out = torch.cat([h(x) for h in self.heads], dim=-1)  # Kjører hver head og concatenater langs feature-dimensjonen
+    bpe_encoded = bpe_tokenizer.encode(sample)  # encoder sample
+    bpe_decoded = bpe_tokenizer.decode(bpe_encoded)  # decoder tilbake
 
-        out = self.proj(out)  # Projiserer tilbake til embed_dim
-        out = self.dropout(out)  # Dropout etter projeksjon
-
-        return out  # Returnerer output fra multi-head attention
+    print("\nBPE example text:", repr(sample))  # original tekst
+    print("BPE encoded:", bpe_encoded[:30], "...")  # første tokens
+    print("BPE decoded:", repr(bpe_decoded))  # rekonstruert tekst
