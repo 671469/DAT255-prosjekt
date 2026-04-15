@@ -39,27 +39,36 @@ def generate(model, idx, max_new_tokens, block_size, temperature, top_k):
     return idx  # Returnerer hele sekvensen (original + genererte tokens)
 
 
-def main():
-    config = load_config()  # Leser config fra YAML
+def main(config_path="configs/baseline.yaml"):  # Hovedfunksjon for evaluering/generering
+    config = load_config(config_path)  # Leser config fra YAML
 
     model_cfg = config["model"]  # Henter modellparametere
+    tok_cfg = config["tokenizer"]  # Henter tokenizer-parametere
     train_cfg = config["training"]  # Henter treningsparametere
     gen_cfg = config["generation"]  # Henter genereringsparametere (temperature, top_k osv.)
     ckpt_cfg = config["checkpoint"]  # Henter info om lagret modell
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"  # Velger GPU hvis tilgjengelig, ellers CPU
+    requested_device = train_cfg.get("device", "cpu")  # Leser ønsket device fra config
+    device = "cuda" if requested_device == "cuda" and torch.cuda.is_available() else "cpu"  # Velger GPU hvis tilgjengelig, ellers CPU
 
-    train_data, val_data, tokenizer = prepare_data(split_ratio=train_cfg["train_split"])  # Laster data og tokenizer
+    train_data, val_data, tokenizer = prepare_data(  # Laster data og tokenizer
+        split_ratio=train_cfg["train_split"],  # Hvor mye av data som går til train
+        tokenizer_type=tok_cfg["type"],  # Velger tokenizer-type fra config
+        tokenizer_path=tok_cfg.get("model_path"),  # Hvor tokenizer lagres / lastes fra
+        vocab_size=tok_cfg.get("vocab_size"),  # Vokabularstørrelse for BPE
+        min_frequency=tok_cfg.get("min_frequency", 2),  # Minste frekvens for BPE-token
+    )
+
     vocab_size = tokenizer.vocab_size  # Henter størrelse på vokabularet
 
     model = ShakespeareModel(  # Initialiserer modellen med parametere fra config
-        vocab_size=vocab_size,
-        embed_dim=model_cfg["d_model"],
-        block_size=model_cfg["context_length"],
-        num_layers=model_cfg["n_layers"],
-        num_heads=model_cfg["n_heads"],
-        ff_mult=model_cfg["ff_mult"],
-        dropout=model_cfg["dropout"],
+        vocab_size=vocab_size,  # Output head må matche vocab size
+        embed_dim=model_cfg["d_model"],  # Embedding-dimensjon
+        block_size=model_cfg["context_length"],  # Hvor lang kontekst modellen ser
+        num_layers=model_cfg["n_layers"],  # Antall transformerblokker
+        num_heads=model_cfg["n_heads"],  # Antall attention heads
+        ff_mult=model_cfg["ff_mult"],  # Hvor mye FFN utvider embeddingdimensjonen
+        dropout=model_cfg["dropout"],  # Dropout-rate
     ).to(device)  # Flytter modellen til valgt device (CPU/GPU)
 
     model.load_state_dict(torch.load(ckpt_cfg["save_path"], map_location=device))  # Laster inn trenede vekter
@@ -86,5 +95,6 @@ def main():
 
 if __name__ == "__main__":  # Kjør kun hvis filen startes direkte
     main()
+
     
 # Enkel top-k versjon only. Vil prøve på top-p senere, men å legge inn toggle var litt vanskelig.
