@@ -11,13 +11,13 @@ training:
   lr: 2e-4  #learning rate (var 3e-4)
   max_iters: 15000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
-  eval_iters: 30  # Hvor mange batches vi bruker når vi estimerer loss
+  eval_iters: 35  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
   device: "cuda"  # Bruk GPU hvis tilgjengelig.
-  weight_decay: 0.00 # Weight decay for regularisering i AdamW
-  grad_clip: 0.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
+  weight_decay: 0.01 # Weight decay for regularisering i AdamW
+  grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
-  patience: 20  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
+  patience: 30  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
 
 logging:
