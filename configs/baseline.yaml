@@ -8,8 +8,8 @@ model:
 
 training:
   batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32)
-  lr: 4.5e-3  #learning rate (var 3e-4)
-  max_iters: 15000  #hvor mange treningsteps. SKal stå 15000 her
+  lr: 3e-4  #learning rate (var 3e-4)
+  max_iters: 20000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
@@ -17,7 +17,7 @@ training:
   weight_decay: 0.00 # Weight decay for regularisering i AdamW
   grad_clip: 0.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
-  patience: 20  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
+  patience: 30  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
 
 logging:
@@ -41,6 +41,6 @@ generation:
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 1024  # størrelse på BPE-vokabular (var 512)
+  vocab_size: 2000  # størrelse på BPE-vokabular (var 512)
   min_frequency: 2  # minste frekvens for BPE-token
   model_path: "models/bpe_tokenizer.json"  # hvor tokenizer lagres / lastes fra
