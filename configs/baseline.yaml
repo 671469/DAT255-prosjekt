@@ -1,7 +1,7 @@
 model:
-  n_layers: 3  #Transformer-blokker (var 5)
-  n_heads: 4  #attention heads i hver transformer layer
-  d_model: 128   #dimensjonen på embeddding aka n_embd (var 128)
+  n_layers: 2  #Transformer-blokker (var 5)
+  n_heads: 2  #attention heads i hver transformer layer
+  d_model: 64   #dimensjonen på embeddding aka n_embd (var 128)
   context_length: 256   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
   dropout: 0.1 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
