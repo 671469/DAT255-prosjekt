@@ -1,15 +1,15 @@
 model:
-  n_layers: 5  #Transformer-blokker (var 5)
+  n_layers: 3  #Transformer-blokker (var 5)
   n_heads: 4  #attention heads i hver transformer layer
-  d_model: 256   #dimensjonen på embeddding aka n_embd (var 128)
+  d_model: 128   #dimensjonen på embeddding aka n_embd (var 128)
   context_length: 256   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
-  dropout: 0.0 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
+  dropout: 0.1 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
   batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32)
   lr: 3e-4  #learning rate (var 3e-4)
-  max_iters: 20000  #hvor mange treningsteps. SKal stå 15000 her
+  max_iters: 15000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
