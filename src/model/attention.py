@@ -47,6 +47,8 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, embed_dim, num_heads, block_size, dropout):
         super().__init__()  # Initialiserer parent-klassen nn.Module
 
+        assert embed_dim % num_heads == 0, "embed_dim må være delelig på num_heads"  # Sjekker at embed_dim kan deles likt på heads
+
         head_size = embed_dim // num_heads  # Deler embedding-dimensjonen likt på antall heads
 
         self.heads = nn.ModuleList(  # Lager en liste med flere attention-heads
