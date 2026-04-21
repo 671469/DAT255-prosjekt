@@ -111,6 +111,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     loss_fn = nn.CrossEntropyLoss()  # Loss for neste-token-prediksjon
 
     best_val_loss = float("inf")  # Lagrer beste validation loss så langt
+    best_train_loss = None  # Lagrer train loss ved samme step som ga beste val loss
     patience_counter = 0  # Teller hvor mange eval-runder på rad uten forbedring
     best_step = -1  # Lagrer hvilket step som ga beste modell
 
@@ -194,6 +195,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
 
             if val_loss < best_val_loss - min_delta:  # Sjekker om validation loss er forbedret nok til å telle som ny beste modell
                 best_val_loss = val_loss  # Oppdaterer beste validation loss
+                best_train_loss = train_loss  # Lagrer train loss ved samme step som beste val loss
                 patience_counter = 0  # Nullstiller teller fordi modellen forbedret seg
                 best_step = step  # Lagrer hvilket step som ga beste modell
 
@@ -282,21 +284,23 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
 
         final_results_table = wandb.Table(columns=[
             "best_step",
+            "train_loss",
             "val_loss",
             "test_loss",
             "test_perplexity",
             "prompt",
             "generated_text"
-        ])  # Lager en egen ryddig tabell med de viktigste sluttresultatene for run-en
+        ])  # Lager en egen ryddig tabell med de viktigste sluttresultatene for run-en, inkludert train loss ved beste checkpoint
 
         final_results_table.add_data(
             best_step,
+            best_train_loss,
             best_val_loss,
             final_test_loss,
             final_test_perplexity,
             final_prompt,
             final_text
-        )  # Legger inn beste step, beste val-loss, endelig test-måling og generert tekst
+        )  # Legger inn beste step, train loss ved beste checkpoint, beste val-loss, endelig test-måling og generert tekst
 
         wandb.log({
             "final_samples": final_samples_table,  # Logger sluttgenereringen som egen tabell
@@ -305,8 +309,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
             "final_test_perplexity": final_test_perplexity,  # Logger endelig test perplexity som egen metrikk
         })
 
-        wandb.summary["best_val_loss"] = best_val_loss  # Lagrer beste validation loss i W&B summary
         wandb.summary["best_step"] = best_step  # Lagrer hvilket step som ga beste modell i W&B summary
+        wandb.summary["best_train_loss"] = best_train_loss  # Lagrer train loss ved beste checkpoint i W&B summary
+        wandb.summary["best_val_loss"] = best_val_loss  # Lagrer beste validation loss i W&B summary
         wandb.summary["final_prompt"] = final_prompt  # Lagrer prompt brukt til sluttgenerering i W&B summary
         wandb.summary["final_generated_text"] = final_text  # Lagrer sluttgenereringen også i W&B summary
         wandb.summary["final_test_loss"] = final_test_loss  # Lagrer endelig test loss tydelig i W&B summary
