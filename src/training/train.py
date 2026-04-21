@@ -25,7 +25,7 @@ def estimate_loss(model, data, eval_iters, context_length, batch_size, device): 
 
     with torch.no_grad():  # Skrur av gradienter under evaluering
         for _ in range(eval_iters):  # Kjører flere eval-batches
-            x, y = get_batch(data, context_length, batch_size, device=device)  # Henter batch fra valgt datasplit
+            x, y = get_batch(data, context_length, batch_size, device=device)  # Henter batch fra valgt datasplitt
             logits = model(x)  # Forward pass
 
             B, T, C = logits.shape  # B=batch, T=tidssteg, C=vocab size
@@ -49,8 +49,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     requested_device = train_cfg.get("device", "cpu")  # Leser ønsket device fra config
     device = "cuda" if requested_device == "cuda" and torch.cuda.is_available() else "cpu"  # Faller tilbake til CPU hvis GPU ikke finnes
 
-    train_data, val_data, tokenizer = prepare_data(  # Laster tekst, tokeniserer, tensoriserer og splitter data
-        split_ratio=train_cfg["train_split"],  # Hvor mye som går til train
+    train_data, val_data, test_data, tokenizer = prepare_data(  # Laster tekst, tokeniserer, tensoriserer og splitter data i train/val/test
+        train_ratio=train_cfg["train_ratio"],  # Hvor mye som går til train
+        val_ratio=train_cfg["val_ratio"],  # Hvor mye som går til val
         tokenizer_type=tok_cfg["type"],  # Velger tokenizer-type fra config
         tokenizer_path=tok_cfg.get("model_path"),  # Hvor tokenizer skal lagres / lastes fra
         vocab_size=tok_cfg.get("vocab_size"),  # Vokabularstørrelse for BPE
@@ -77,7 +78,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
             config=config,  # Logger hele YAML-configen til W&B
         )
 
-        samples_table = wandb.Table(columns=["step", "train_loss", "val_loss", "val_ppl", "text"])  # Oppretter W&B-tabell med step og generert tekst + loss
+        samples_table = wandb.Table(columns=["step", "train_loss", "val_loss", "val_perplexity", "text"])  # Oppretter W&B-tabell med step og generert tekst + valideringsmålinger
 
         wandb.define_metric("step")  # Definerer step som felles x-akse i W&B
         wandb.define_metric("train_loss", step_metric="step")  # Viser train_loss mot step
@@ -125,6 +126,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
         wandb.summary["early_stopping"] = use_early_stopping  # Viser om early stopping var aktiv
         wandb.summary["patience"] = patience  # Viser patience-verdi brukt i denne run-en
         wandb.summary["min_delta"] = min_delta  # Viser min_delta brukt i denne run-en
+        wandb.summary["train_ratio"] = train_cfg["train_ratio"]  # Viser train split
+        wandb.summary["val_ratio"] = train_cfg["val_ratio"]  # Viser val split
+        wandb.summary["test_ratio"] = 1.0 - train_cfg["train_ratio"] - train_cfg["val_ratio"]  # Viser hvor stor del som er igjen til test
 
     for step in range(train_cfg["max_iters"]):  # Hovedloop for trening
         x, y = get_batch(
@@ -147,7 +151,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
 
         optimizer.step()
 
-        if step % train_cfg["eval_interval"] == 0:
+        if step % train_cfg["eval_interval"] == 0:  # Kjører evaluering med faste intervaller under trening
             train_loss = estimate_loss(
                 model,
                 train_data,
@@ -155,7 +159,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 model_cfg["context_length"],
                 train_cfg["batch_size"],
                 device,
-            )
+            )  # Måler gjennomsnittlig train loss på tilfeldig utvalg fra train-splittet
 
             val_loss = estimate_loss(
                 model,
@@ -164,10 +168,10 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 model_cfg["context_length"],
                 train_cfg["batch_size"],
                 device,
-            )
+            )  # Måler gjennomsnittlig val loss på valideringssplittet
 
-            train_perplexity = math.exp(min(train_loss, 20))
-            val_perplexity = math.exp(min(val_loss, 20))
+            train_perplexity = math.exp(min(train_loss, 20))  # Regner om train loss til perplexity
+            val_perplexity = math.exp(min(val_loss, 20))  # Regner om val loss til perplexity
 
             print(
                 f"Step {step} | "
@@ -175,7 +179,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 f"train ppl {train_perplexity:.2f} | val ppl {val_perplexity:.2f}"
             )
 
-            input_ids = torch.tensor([tokenizer.encode(gen_cfg["prompt"])], dtype=torch.long).to(device)
+            input_ids = torch.tensor([tokenizer.encode(gen_cfg["prompt"])], dtype=torch.long).to(device)  # Gjør prompt om til token-IDer
 
             output = generate(
                 model,
@@ -184,9 +188,9 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 block_size=model_cfg["context_length"],
                 temperature=gen_cfg["temperature"],
                 top_k=gen_cfg["top_k"],
-            )
+            )  # Genererer tekst med modellen slik den er akkurat nå
 
-            sample_text = tokenizer.decode(output[0].tolist())
+            sample_text = tokenizer.decode(output[0].tolist())  # Gjør genererte token-IDer om til lesbar tekst
 
             if val_loss < best_val_loss - min_delta:  # Sjekker om validation loss er forbedret nok til å telle som ny beste modell
                 best_val_loss = val_loss  # Oppdaterer beste validation loss
@@ -200,7 +204,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
                 patience_counter += 1  # Øker teller hvis val-loss ikke forbedret seg nok
 
             if run is not None:
-                samples_table.add_data(step, train_loss, val_loss, val_perplexity, sample_text)
+                samples_table.add_data(step, train_loss, val_loss, val_perplexity, sample_text)  # Legger til tekstsample og val-målinger i W&B-tabellen
 
             if run is not None:
                 wandb.log({
@@ -231,42 +235,82 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     else:
         print(f"Beste modell ble lagret fra step {best_step} i {ckpt_cfg['save_path']}")  # Bekrefter hvilket step som ga beste modell
 
-    if run is not None:  # Kjører en siste generering med beste lagrede checkpoint og logger den i samme W&B-run
-        final_model = ShakespeareModel(  # Lager en ny modellinstans med samme arkitektur
-            vocab_size=vocab_size,  # Output-dimensjon må matche vocab
-            embed_dim=model_cfg["d_model"],  # Embedding-dimensjon
-            block_size=model_cfg["context_length"],  # Hvor lang kontekst modellen ser
-            num_layers=model_cfg["n_layers"],  # Antall lag
-            num_heads=model_cfg["n_heads"],  # Antall attention heads
-            ff_mult=model_cfg["ff_mult"],  # Feed-forward multiplier
-            dropout=model_cfg["dropout"],  # Dropout rate
-        ).to(device)  # Flytter modellen til CPU/GPU
+    final_model = ShakespeareModel(  # Lager en ny modellinstans med samme arkitektur
+        vocab_size=vocab_size,  # Output-dimensjon må matche vocab
+        embed_dim=model_cfg["d_model"],  # Embedding-dimensjon
+        block_size=model_cfg["context_length"],  # Hvor lang kontekst modellen ser
+        num_layers=model_cfg["n_layers"],  # Antall lag
+        num_heads=model_cfg["n_heads"],  # Antall attention heads
+        ff_mult=model_cfg["ff_mult"],  # Feed-forward multiplier
+        dropout=model_cfg["dropout"],  # Dropout rate
+    ).to(device)  # Flytter modellen til CPU/GPU
 
-        final_model.load_state_dict(torch.load(ckpt_cfg["save_path"], map_location=device))  # Laster inn beste lagrede modell fra disk
-        final_model.eval()  # Setter modellen i eval-modus
+    final_model.load_state_dict(torch.load(ckpt_cfg["save_path"], map_location=device))  # Laster inn beste lagrede modell fra disk
+    final_model.eval()  # Setter modellen i eval-modus
 
-        final_prompt = gen_cfg["prompt"]  # Bruker samme prompt som i config
-        final_input_ids = torch.tensor([tokenizer.encode(final_prompt)], dtype=torch.long).to(device)  # Gjør prompt om til token-IDer
+    final_test_loss = estimate_loss(
+        final_model,
+        test_data,
+        train_cfg["eval_iters"],
+        model_cfg["context_length"],
+        train_cfg["batch_size"],
+        device,
+    )  # Evaluerer beste modell én gang på test-splittet helt til slutt
 
-        final_output = generate(  # Genererer tekst med beste lagrede modell
-            final_model,
-            final_input_ids,
-            max_new_tokens=gen_cfg["max_new_tokens"],  # Hvor mange tokens som skal genereres
-            block_size=model_cfg["context_length"],  # Hvor mye kontekst modellen bruker
-            temperature=gen_cfg["temperature"],  # Bruker temperature fra config
-            top_k=gen_cfg["top_k"],  # Bruker top_k fra config
-        )
+    final_test_perplexity = math.exp(min(final_test_loss, 20))  # Regner om test loss til endelig test perplexity
 
-        final_text = tokenizer.decode(final_output[0].tolist())  # Gjør genererte token-IDer om til lesbar tekst
+    print(f"Final test loss: {final_test_loss:.4f}")  # Skriver ut endelig test loss i terminal
+    print(f"Final test perplexity: {final_test_perplexity:.2f}")  # Skriver ut endelig test perplexity i terminal
 
+    final_prompt = gen_cfg["prompt"]  # Bruker samme prompt som i config
+    final_input_ids = torch.tensor([tokenizer.encode(final_prompt)], dtype=torch.long).to(device)  # Gjør prompt om til token-IDer
+
+    final_output = generate(  # Genererer tekst med beste lagrede modell
+        final_model,
+        final_input_ids,
+        max_new_tokens=gen_cfg["max_new_tokens"],  # Hvor mange tokens som skal genereres
+        block_size=model_cfg["context_length"],  # Hvor mye kontekst modellen bruker
+        temperature=gen_cfg["temperature"],  # Bruker temperature fra config
+        top_k=gen_cfg["top_k"],  # Bruker top_k fra config
+    )
+
+    final_text = tokenizer.decode(final_output[0].tolist())  # Gjør genererte token-IDer om til lesbar tekst
+
+    if run is not None:  # Logger sluttresultater i samme W&B-run
         final_samples_table = wandb.Table(columns=["best_step", "prompt", "text"])  # Lager egen tabell for final eval-sample
         final_samples_table.add_data(best_step, final_prompt, final_text)  # Legger inn sluttgenereringen i tabellen
 
-        wandb.log({"final_samples": final_samples_table})  # Logger final eval-tabellen i samme run
+        final_results_table = wandb.Table(columns=[
+            "best_step",
+            "val_loss",
+            "test_loss",
+            "test_perplexity",
+            "prompt",
+            "generated_text"
+        ])  # Lager en egen ryddig tabell med de viktigste sluttresultatene for run-en
+
+        final_results_table.add_data(
+            best_step,
+            best_val_loss,
+            final_test_loss,
+            final_test_perplexity,
+            final_prompt,
+            final_text
+        )  # Legger inn beste step, beste val-loss, endelig test-måling og generert tekst
+
+        wandb.log({
+            "final_samples": final_samples_table,  # Logger sluttgenereringen som egen tabell
+            "final_results": final_results_table,  # Logger en samlet tabell med sluttresultater
+            "final_test_loss": final_test_loss,  # Logger endelig test loss som egen metrikk
+            "final_test_perplexity": final_test_perplexity,  # Logger endelig test perplexity som egen metrikk
+        })
+
         wandb.summary["best_val_loss"] = best_val_loss  # Lagrer beste validation loss i W&B summary
         wandb.summary["best_step"] = best_step  # Lagrer hvilket step som ga beste modell i W&B summary
         wandb.summary["final_prompt"] = final_prompt  # Lagrer prompt brukt til sluttgenerering i W&B summary
         wandb.summary["final_generated_text"] = final_text  # Lagrer sluttgenereringen også i W&B summary
+        wandb.summary["final_test_loss"] = final_test_loss  # Lagrer endelig test loss tydelig i W&B summary
+        wandb.summary["final_test_perplexity"] = final_test_perplexity  # Lagrer endelig test perplexity tydelig i W&B summary
 
         wandb.log({"samples": samples_table})  # Logger hele samples-tabellen én gang til slutt
         run.finish()
