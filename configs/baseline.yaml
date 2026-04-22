@@ -15,7 +15,7 @@ training:
   train_split: 0.9  # Hvor stor del av data som brukes til trening
   device: "cuda"  # Bruk GPU hvis tilgjengelig.
   weight_decay: 0.00 # Weight decay for regularisering i AdamW
-  grad_clip: 0.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
+  grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
   patience: 40  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
