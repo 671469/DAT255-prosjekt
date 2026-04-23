@@ -1,26 +1,26 @@
 model:
-  n_layers: 5  #Transformer-blokker (var 5)
-  n_heads: 4  #attention heads i hver transformer layer
-  d_model: 256   #dimensjonen på embeddding aka n_embd (var 128)
+  n_layers: 6  #Transformer-blokker (var 5)
+  n_heads: 6  #attention heads i hver transformer layer
+  d_model: 384   #dimensjonen på embeddding aka n_embd (var 128)
   context_length: 512   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
   dropout: 0.3 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
-  batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32)
+  batch_size: 32  #hvor mange sekvenser pr treningsstep (var 32)
   lr: 1e-4  #learning rate (var 3e-4)
   max_iters: 30000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
   train_split: 0.9  # Hvor stor del av data som brukes til trening
   device: "cuda"  # Bruk GPU hvis tilgjengelig.
-  weight_decay: 0.00 # Weight decay for regularisering i AdamW
+  weight_decay: 0.01 # Weight decay for regularisering i AdamW
   grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
   patience: 40  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
-  min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
-  train_ratio: 0.8 # Andel av data som brukes til trening
-  val_ratio: 0.1 # Andel av data som brukes til validering (resten brukes til test)
+  min_delta: 0.001  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
+  #train_ratio: 0.8 # Andel av data som brukes til trening
+  #val_ratio: 0.1 # Andel av data som brukes til validering (resten brukes til test)
 
 logging:
   use_wandb: true  # Logge til Weights & Biases
