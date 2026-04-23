@@ -51,8 +51,11 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"  # Velger GPU hvis tilgjengelig, ellers CPU
 
     _, _, _, tokenizer = prepare_data(  # Laster tokenizer via samme datapipeline som trening, men eval.py trenger ikke selve splittene
-        train_ratio=train_cfg["train_ratio"],  # Leser train-ratio fra config
-        val_ratio=train_cfg["val_ratio"],  # Leser val-ratio fra config
+        #train_ratio=train_cfg["train_ratio"],  # Leser train-ratio fra config
+        #val_ratio=train_cfg["val_ratio"],  # Leser val-ratio fra config
+        train_split=train_cfg["train_split"],
+        val_split=train_cfg["val_split"],
+        test_split=train_cfg["test_split"],
         tokenizer_type=tok_cfg["type"],  # Leser hvilken tokenizer-type som brukes
         tokenizer_path=tok_cfg.get("model_path"),  # Leser hvor tokenizeren lagres / lastes fra
         vocab_size=tok_cfg.get("vocab_size"),  # Leser ønsket vocab size for BPE
