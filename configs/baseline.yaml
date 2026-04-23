@@ -12,17 +12,17 @@ training:
   max_iters: 30000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
   eval_iters: 20  # Hvor mange batches vi bruker når vi estimerer loss
-  train_split: 0.9  # Hvor stor del av data som brukes til trening
-  val_split: 0.05
-  test_split: 0.05
+  #train_split: 0.9  # Hvor stor del av data som brukes til trening
+  #val_split: 0.05
+  #test_split: 0.05
   device: "cuda"  # Bruk GPU hvis tilgjengelig.
   weight_decay: 0.01 # Weight decay for regularisering i AdamW
   grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
   patience: 40  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
   min_delta: 0.001  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
-  #train_ratio: 0.8 # Andel av data som brukes til trening
-  #val_ratio: 0.1 # Andel av data som brukes til validering (resten brukes til test)
+  train_ratio: 0.8 # Andel av data som brukes til trening
+  val_ratio: 0.1 # Andel av data som brukes til validering (resten brukes til test)
 
 logging:
   use_wandb: true  # Logge til Weights & Biases
