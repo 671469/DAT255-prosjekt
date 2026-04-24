@@ -36,6 +36,28 @@ def estimate_loss(model, data, eval_iters, context_length, batch_size, device): 
     return sum(losses) / len(losses)  # Returnerer gjennomsnittlig loss
 
 
+def get_lr(step, train_cfg):  # Beregner learning rate med lineær warmup + cosine decay
+    base_lr = float(train_cfg["lr"])  # Maks learning rate etter warmup
+    min_lr = float(train_cfg.get("min_lr", base_lr * 0.1))  # Laveste learning rate mot slutten, default er 10% av base_lr
+    warmup_iters = int(train_cfg.get("warmup_iters", 0))  # Antall steg brukt på lineær warmup
+    max_iters = int(train_cfg["max_iters"])  # Totalt antall treningssteg
+
+    if warmup_iters > 0 and step < warmup_iters:  # Lineær warmup i starten av treningen
+        return base_lr * (step + 1) / warmup_iters  # Øker learning rate gradvis fra nesten 0 til base_lr
+
+    if step >= max_iters:  # Safety hvis step går forbi max_iters
+        return min_lr  # Holder learning rate på minimum
+
+    if max_iters == warmup_iters:  # Hindrer deling på null hvis warmup_iters tilfeldigvis er lik max_iters
+        return min_lr  # Bruker min_lr som fallback
+
+    decay_ratio = (step - warmup_iters) / (max_iters - warmup_iters)  # Hvor langt vi er i cosine decay-fasen
+    decay_ratio = min(max(decay_ratio, 0.0), 1.0)  # Sørger for at ratio alltid er mellom 0 og 1
+    coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio))  # Cosine decay-koeffisient fra 1 til 0
+
+    return min_lr + coeff * (base_lr - min_lr)  # Returnerer learning rate mellom base_lr og min_lr
+
+
 def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     config = load_config(config_path)  # Leser all config fra YAML
 
@@ -130,8 +152,15 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
         wandb.summary["train_ratio"] = train_cfg["train_ratio"]  # Viser train split
         wandb.summary["val_ratio"] = train_cfg["val_ratio"]  # Viser val split
         wandb.summary["test_ratio"] = 1.0 - train_cfg["train_ratio"] - train_cfg["val_ratio"]  # Viser hvor stor del som er igjen til test
+        wandb.summary["min_lr"] = float(train_cfg.get("min_lr", lr * 0.1))  # Viser minimum learning rate brukt av scheduler
+        wandb.summary["warmup_iters"] = int(train_cfg.get("warmup_iters", 0))  # Viser antall warmup-steg brukt
+        wandb.summary["lr_schedule"] = "linear_warmup_cosine_decay"  # Viser hvilken learning rate schedule som ble brukt
 
     for step in range(train_cfg["max_iters"]):  # Hovedloop for trening
+        current_lr = get_lr(step, train_cfg)  # Beregner learning rate for dette steget med warmup + cosine decay
+        for param_group in optimizer.param_groups:  # Oppdaterer learning rate i optimizer
+            param_group["lr"] = current_lr  # Setter ny learning rate før forward/backward-pass
+
         x, y = get_batch(
             train_data,
             model_cfg["context_length"],

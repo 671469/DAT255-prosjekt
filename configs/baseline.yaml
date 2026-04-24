@@ -21,6 +21,8 @@ training:
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
   train_ratio: 0.8 # Andel av data som brukes til trening
   val_ratio: 0.1 # Andel av data som brukes til validering (resten brukes til test)
+  min_lr: 3e-5  # Laveste learning rate mot slutten av treningen (cosine decay)
+  warmup_iters: 1000 # Antall steg der learning rate økes gradvis fra 0 til lr (warmup)
 
 logging:
   use_wandb: true  # Logge til Weights & Biases
