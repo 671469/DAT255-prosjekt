@@ -4,7 +4,7 @@ model:
   d_model: 256   #dimensjonen på embeddding aka n_embd (var 128)
   context_length: 256   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
-  dropout: 0.1 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
+  dropout: 0.15 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
   batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32)
@@ -12,7 +12,6 @@ training:
   max_iters: 50000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 200  # Hvor ofte vi evaluerer og logger. Skal stå 100 her (var 100)
   eval_iters: 100  # Hvor mange batches vi bruker når vi estimerer loss (var 20)
-  train_split: 0.9  # Hvor stor del av data som brukes til trening
   device: "cuda"  # Bruk GPU hvis tilgjengelig.
   weight_decay: 0.01 # Weight decay for regularisering i AdamW
   grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
