@@ -7,7 +7,7 @@ model:
   dropout: 0.3 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
-  batch_size: 32  #hvor mange sekvenser pr treningsstep (var 32)
+  batch_size: 64  #hvor mange sekvenser pr treningsstep (var 32)
   lr: 1e-4  #learning rate (var 3e-4)
   max_iters: 30000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 100  # Hvor ofte vi evaluerer og logger. Skal stå 100 her
@@ -45,6 +45,6 @@ generation:
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 8000  # størrelse på BPE-vokabular (var 512)
+  vocab_size: 4000  # størrelse på BPE-vokabular (var 512)
   min_frequency: 2  # minste frekvens for BPE-token
-  model_path: models/bpe_tokenizer_8000.json # hvor tokenizer lagres / lastes fra
+  model_path: models/bpe_tokenizer_train_only.json # hvor tokenizer lagres / lastes fra
