@@ -21,8 +21,8 @@ training:
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
   patience: 40  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 10)
   min_delta: 0.001  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
-  train_ratio: 0.8 # Andel av data som brukes til trening
-  val_ratio: 0.1 # Andel av data som brukes til validering (resten brukes til test)
+  train_ratio: 0.9 # Andel av data som brukes til trening
+  val_ratio: 0.05 # Andel av data som brukes til validering (resten brukes til test)
 
 logging:
   use_wandb: true  # Logge til Weights & Biases
