@@ -35,11 +35,11 @@ checkpoint:
   save_path: "models/shakespeare_model.pt"  # Filsti til lagret modell
 
 generation:
-  prompt: "ROMEO:" # starttekst for generering, (var "Thou art")
-  max_new_tokens: 400  # hvor mange nye tokens som skal genereres (var 200)
-  temperature: 0.7  # styrer hvor tilfeldig output er. (var 0.7)
+  prompt: "ACT I, SCENE I\nROMEO:\n" # starttekst for generering, (var "Thou art")
+  max_new_tokens: 250  # hvor mange nye tokens som skal genereres (var 200)
+  temperature: 0.75  # styrer hvor tilfeldig output er. (var 0.7)
   do_sample: true  # om vi sampler eller velger mest sannsynlige token
-  top_k: 30  # sample kun fra de k mest sannsynlige tokenene. (var 40)
+  top_k: 40  # sample kun fra de k mest sannsynlige tokenene. (var 40)
   # top_p: null  # nucleus sampling, Sett til null hvis ubrukt. Tenker å evt prøve å legge den inn senere, siden den er mer vanlig for GPT modeller
 
 tokenizer:
