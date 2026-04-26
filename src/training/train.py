@@ -252,7 +252,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
 
             if use_early_stopping and patience_counter >= patience:  # Stopper tidlig hvis modellen ikke har forbedret seg på mange eval-runder
                 print(
-                    f"\n🛑 Early stopping triggered!\n"
+                    f"\n Early stopping triggered!\n"
                     f"Step: {step}\n"
                     f"Beste val_loss: {best_val_loss:.4f} (step {best_step})\n"
                     f"Ingen forbedring siste {patience} eval-runder\n"
