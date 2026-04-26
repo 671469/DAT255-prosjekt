@@ -8,7 +8,7 @@ model:
 
 training:
   batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32)
-  lr: 3.5e-4  #learning rate (var 3e-4)
+  lr: 3e-4  #learning rate (var 3e-4)
   max_iters: 50000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 200  # Hvor ofte vi evaluerer og logger. Skal stå 100 her (var 100)
   eval_iters: 100  # Hvor mange batches vi bruker når vi estimerer loss (var 20)
@@ -20,7 +20,7 @@ training:
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
   train_ratio: 0.9 # Andel av data som brukes til trening
   val_ratio: 0.05 # Andel av data som brukes til validering (resten brukes til test)
-  min_lr: 3.5e-5  # Laveste learning rate mot slutten av treningen (cosine decay) (was 3e-5)
+  min_lr: 3e-5  # Laveste learning rate mot slutten av treningen (cosine decay) (was 3e-5)
   warmup_iters: 1000 # Antall steg der learning rate økes gradvis fra 0 til lr (warmup)
 
 logging:
