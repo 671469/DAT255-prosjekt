@@ -8,8 +8,8 @@ model:
 
 training:
   batch_size: 16  #hvor mange sekvenser pr treningsstep (var 32, eller 24 i de fleste av forsøkene)
-  lr: 2e-4  #learning rate (var 3e-4)
-  max_iters: 70000  #hvor mange treningsteps. SKal stå 15000 her
+  lr: 1.5e-4  #learning rate (var 3e-4)
+  max_iters: 100000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 200  # Hvor ofte vi evaluerer og logger. Skal stå 100 her (var 100)
   eval_iters: 100  # Hvor mange batches vi bruker når vi estimerer loss (var 20)
   device: "cuda"  # Bruk GPU hvis tilgjengelig.
@@ -20,7 +20,7 @@ training:
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
   train_ratio: 0.9 # Andel av data som brukes til trening
   val_ratio: 0.05 # Andel av data som brukes til validering (resten brukes til test)
-  min_lr: 2e-5  # Laveste learning rate mot slutten av treningen (cosine decay) (was 3e-5)
+  min_lr: 1e-5  # Laveste learning rate mot slutten av treningen (cosine decay) (was 3e-5)
   warmup_iters: 1000 # Antall steg der learning rate økes gradvis fra 0 til lr (warmup)
 
 logging:
@@ -44,6 +44,6 @@ generation:
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 512  # størrelse på BPE-vokabular (var 512) (best resultat ved 384)
-  min_frequency: 2  # minste frekvens for BPE-token (2 har gitt best resultat)
+  vocab_size: 1024  # størrelse på BPE-vokabular (var 512) (best resultat ved 384)
+  min_frequency: 1  # minste frekvens for BPE-token (2 har gitt best resultat)
   model_path: models/bpe_tokenizer_train_only.json # hvor tokenizer lagres / lastes fra
