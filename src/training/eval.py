@@ -14,6 +14,8 @@ def load_config(config_path="configs/baseline.yaml"):  # Leser config-fil fra di
 
 @torch.no_grad()  # Skrur av gradientberegning (vi trener ikke, bare genererer tekst)
 def generate(model, idx, max_new_tokens, block_size, temperature, top_k):
+    was_training = model.training  # Lagrer om modellen var i train-modus før generering
+
     model.eval()  # Setter modellen i eval-modus (deaktiverer dropout osv.)
 
     for _ in range(max_new_tokens):  # Genererer ett nytt token per iterasjon
@@ -35,6 +37,9 @@ def generate(model, idx, max_new_tokens, block_size, temperature, top_k):
         next_token = torch.multinomial(probs, num_samples=1)  # Sampler ett token fra distribusjonen
 
         idx = torch.cat((idx, next_token), dim=1)  # Legger til det nye tokenet i sekvensen
+
+    if was_training:  # Hvis modellen var i train-modus før generering
+        model.train()  # Setter modellen tilbake til train-modus slik at dropout brukes videre under trening
 
     return idx  # Returnerer hele sekvensen (original + genererte tokens)
 
