@@ -13,7 +13,7 @@ def load_config(config_path="configs/baseline.yaml"):  # Leser config-fil fra di
 
 
 @torch.no_grad()  # Skrur av gradientberegning (vi trener ikke, bare genererer tekst)
-def generate(model, idx, max_new_tokens, block_size, temperature, top_k):
+def generate(model, idx, max_new_tokens, block_size, temperature, top_k, repetition_penalty=None, no_repeat_ngram_size=None):
     was_training = model.training  # Lagrer om modellen var i train-modus før generering
 
     model.eval()  # Setter modellen i eval-modus (deaktiverer dropout osv.)
@@ -27,7 +27,37 @@ def generate(model, idx, max_new_tokens, block_size, temperature, top_k):
 
         logits = logits / temperature  # Skalerer logits med temperature (styrer randomness)
 
+        if repetition_penalty is not None and repetition_penalty > 1.0:  # Hvis repetition penalty er aktivert
+            for b in range(idx.shape[0]):  # Går gjennom hver sekvens i batchen
+                used_tokens = set(idx[b].tolist())  # Finner tokens som allerede er generert i sekvensen
+                for token_id in used_tokens:  # Går gjennom tokens som allerede finnes
+                    if logits[b, token_id] > 0:  # Hvis logit er positiv
+                        logits[b, token_id] = logits[b, token_id] / repetition_penalty  # Senker sannsynlighet for gjentatte tokens
+                    else:  # Hvis logit er negativ
+                        logits[b, token_id] = logits[b, token_id] * repetition_penalty  # Gjør negativ logit enda mindre attraktiv
+
         probs = torch.softmax(logits, dim=-1)  # Gjør logits om til sannsynligheter
+
+        if no_repeat_ngram_size is not None and no_repeat_ngram_size > 0 and idx.shape[1] >= no_repeat_ngram_size - 1:  # Hvis ngram-repetisjon skal blokkeres
+            for b in range(idx.shape[0]):  # Går gjennom hver sekvens i batchen
+                generated = idx[b].tolist()  # Gjør genererte token-IDer om til liste
+
+                if len(generated) >= no_repeat_ngram_size - 1:  # Sjekker at sekvensen er lang nok
+                    prefix = generated[-(no_repeat_ngram_size - 1):] if no_repeat_ngram_size > 1 else []  # Siste n-1 tokens brukes som prefix
+                    banned_tokens = []  # Samler tokens som ville laget et repetert ngram
+
+                    for i in range(len(generated) - no_repeat_ngram_size + 1):  # Går gjennom tidligere ngrams
+                        previous_prefix = generated[i:i + no_repeat_ngram_size - 1] if no_repeat_ngram_size > 1 else []  # Tidligere prefix
+                        next_token = generated[i + no_repeat_ngram_size - 1]  # Tokenet som fulgte etter tidligere prefix
+
+                        if previous_prefix == prefix:  # Hvis samme prefix allerede har forekommet
+                            banned_tokens.append(next_token)  # Blokker tokenet som ville gjentatt ngrammet
+
+                    if banned_tokens:  # Hvis vi fant tokens som skal blokkeres
+                        probs[b, banned_tokens] = 0.0  # Setter sannsynligheten til 0 for disse tokenene
+
+            probs_sum = probs.sum(dim=-1, keepdim=True)  # Summerer sannsynlighetene etter blokkering
+            probs = probs / probs_sum.clamp_min(1e-12)  # Re-normaliserer og unngår deling på null
 
         if top_k is not None:  # Hvis vi bruker top-k sampling
             v, ix = torch.topk(probs, top_k)  # Henter de k mest sannsynlige tokenene
@@ -90,6 +120,8 @@ def main():
         block_size=model_cfg["context_length"],  # Hvor mye kontekst modellen bruker
         temperature=gen_cfg["temperature"],  # Leser temperature fra config
         top_k=gen_cfg["top_k"],  # Leser top_k fra config
+        repetition_penalty=gen_cfg.get("repetition_penalty"),  # Leser repetition penalty fra config hvis satt
+        no_repeat_ngram_size=gen_cfg.get("no_repeat_ngram_size"),  # Leser ngram-blokkering fra config hvis satt
     )
 
     result = tokenizer.decode(output[0].tolist())  # Gjør token-IDer tilbake til tekst
