@@ -4,19 +4,19 @@ model:
   d_model: 384   #dimensjonen på embeddding aka n_embd (var 128)
   context_length: 384   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
-  dropout: 0.25 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
+  dropout: 0.0 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
   batch_size: 16  #hvor mange sekvenser pr treningsstep (var 32, eller 24 i de fleste av forsøkene)
   lr: 1.5e-4  #learning rate (var 3e-4)
-  max_iters: 100000  #hvor mange treningsteps. SKal stå 15000 her
+  max_iters: 70000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 200  # Hvor ofte vi evaluerer og logger. Skal stå 100 her (var 100)
   eval_iters: 100  # Hvor mange batches vi bruker når vi estimerer loss (var 20)
   device: "cuda"  # Bruk GPU hvis tilgjengelig.
   weight_decay: 0.01 # Weight decay for regularisering i AdamW
   grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
-  patience: 50  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 20)
+  patience: 20  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 20)
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
   train_ratio: 0.9 # Andel av data som brukes til trening
   val_ratio: 0.05 # Andel av data som brukes til validering (resten brukes til test)
@@ -37,15 +37,15 @@ checkpoint:
 generation:
   prompt:  "Thou art" # starttekst for generering, (var "Thou art")
   max_new_tokens: 250  # hvor mange nye tokens som skal genereres (var 200)
-  temperature: 0.65  # styrer hvor tilfeldig output er. (var 0.7)
+  temperature: 0.7  # styrer hvor tilfeldig output er. (var 0.7)
   do_sample: true  # om vi sampler eller velger mest sannsynlige token
-  top_k: 30  # sample kun fra de k mest sannsynlige tokenene. (var 40)
+  top_k: 40  # sample kun fra de k mest sannsynlige tokenene. (var 40)
   # top_p: null  # nucleus sampling, Sett til null hvis ubrukt. Tenker å evt prøve å legge den inn senere, siden den er mer vanlig for GPT modeller
   repetition_penalty: 1.15 # Straffer tokens som allerede er brukt, reduserer repetisjon i teksten
   no_repeat_ngram_size: 3 # Hindrer at samme sekvens av 3 tokens gjentas flere ganger
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 1024  # størrelse på BPE-vokabular (var 512) (best resultat ved 384)
+  vocab_size: 384  # størrelse på BPE-vokabular (var 512) (best resultat ved 384)
   min_frequency: 1  # minste frekvens for BPE-token (2 har gitt best resultat)
   model_path: models/bpe_tokenizer_train_only.json # hvor tokenizer lagres / lastes fra
