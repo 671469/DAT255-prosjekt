@@ -25,7 +25,7 @@ model.eval()
 
 def chat(message, history):
     input_ids = torch.tensor(
-        [tokenizer.encode(f"ROMEO: {message}\n")],
+        [tokenizer.encode(f"Thou art {message}\n")],
         dtype=torch.long
     ).to(device)
 
