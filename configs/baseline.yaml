@@ -1,6 +1,6 @@
 model:
-  n_layers: 4  #Transformer-blokker (var 5)
-  n_heads: 4  #attention heads i hver transformer layer
+  n_layers: 8  #Transformer-blokker (var 5)
+  n_heads: 8  #attention heads i hver transformer layer
   d_model: 512   #dimensjonen på embeddding aka n_embd (var 128)
   context_length: 384   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
@@ -26,7 +26,7 @@ training:
 logging:
   use_wandb: true  # Logge til Weights & Biases
   entity: "671469-h-gskulen-p-vestlandet"  # W&B entity/team
-  project: "Test-Maria"
+  project: "Test-Linn"
   #project: "mini-shakespeare-gpt"  # Prosjektnavn i W&B
   run_name: "baseline"  # Navn på denne run-en
 
@@ -46,6 +46,6 @@ generation:
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 4000  # størrelse på BPE-vokabular (var 512)
-  min_frequency: 2  # minste frekvens for BPE-token
+  vocab_size: 512  # størrelse på BPE-vokabular (var 512)
+  min_frequency: 1  # minste frekvens for BPE-token
   model_path: models/bpe_tokenizer_train_only.json # hvor tokenizer lagres / lastes fra
