@@ -100,8 +100,8 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     model.train()  # Setter modellen i train-modus
 
     lr = float(train_cfg["lr"])  # Sørger for at learning rate er float
-    weight_decay = float(train_cfg.get("weight_decay", 0.0))  # Henter weight decay fra config (bruker 0.0 hvis feltet mangler)
-    grad_clip = float(train_cfg.get("grad_clip", 0.0))  # Henter gradient clipping fra config (bruker 0.0 hvis feltet mangler)
+    weight_decay = float(train_cfg.get("weight_decay", 0.0))  # Henter weight decay fra config 
+    grad_clip = float(train_cfg.get("grad_clip", 0.0))  # Henter gradient clipping fra config
 
     use_early_stopping = train_cfg.get("early_stopping", False)  # Leser om early stopping er aktiv fra config
     patience = int(train_cfg.get("patience", 10))  # Hvor mange eval-runder vi tåler uten forbedring
@@ -113,7 +113,7 @@ def train(config_path="configs/baseline.yaml"):  # Hovedfunksjon for trening
     best_val_loss = float("inf")  # Lagrer beste validation loss så langt
     best_train_loss = None  # Lagrer train loss ved samme step som ga beste val loss
     patience_counter = 0  # Teller hvor mange eval-runder på rad uten forbedring
-    best_step = -1  # Lagrer hvilket step som ga beste modell
+    best_step = -1  # Lagrer hvilket step som ga beste modell.
 
     if run is not None:  # Lagrer ekstra info i W&B summary for denne run-en
         wandb.summary["resolved_device"] = device  # Viser faktisk device brukt
