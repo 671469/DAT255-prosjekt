@@ -1,14 +1,14 @@
 model:
-  n_layers: 8  #Transformer-blokker (var 4)
-  n_heads: 8  #attention heads i hver transformer layer (var 4)
-  d_model: 512   #dimensjonen på embeddding aka n_embd (var 128)
-  context_length: 512   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
+  n_layers: 6  #Transformer-blokker (var 4)
+  n_heads: 6  #attention heads i hver transformer layer (var 4)
+  d_model: 384   #dimensjonen på embeddding aka n_embd (var 128)
+  context_length: 256   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
   dropout: 0.30 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
-  batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32, eller 24 i de fleste av forsøkene)
-  lr: 1e-4  #learning rate (var 3e-4)
+  batch_size: 64  #hvor mange sekvenser pr treningsstep (var 32, eller 24 i de fleste av forsøkene)
+  lr: 2e-4  #learning rate (var 3e-4)
   max_iters: 300000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 200  # Hvor ofte vi evaluerer og logger. Skal stå 100 her (var 100)
   eval_iters: 100  # Hvor mange batches vi bruker når vi estimerer loss (var 20)
@@ -16,12 +16,12 @@ training:
   weight_decay: 0.02 # Weight decay for regularisering i AdamW
   grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
-  patience: 50  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 20)
+  patience: 30  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 20)
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
   train_ratio: 0.9 # Andel av data som brukes til trening
   val_ratio: 0.05 # Andel av data som brukes til validering (resten brukes til test)
-  min_lr: 5e-6  # Laveste learning rate mot slutten av treningen (cosine decay) (was 3e-5)
-  warmup_iters: 1000 # Antall steg der learning rate økes gradvis fra 0 til lr (warmup)
+  min_lr: 1e-5  # Laveste learning rate mot slutten av treningen (cosine decay) (was 3e-5)
+  warmup_iters: 500 # Antall steg der learning rate økes gradvis fra 0 til lr (warmup)
 
 logging:
   use_wandb: true  # Logge til Weights & Biases
@@ -35,17 +35,17 @@ checkpoint:
   save_path: "models/shakespeare_model.pt"  # Filsti til lagret modell
 
 generation:
-  prompt:  "Thou art" # starttekst for generering, (var "Thou art")
+  prompt:  "ROMEO: " # starttekst for generering, (var "Thou art")
   max_new_tokens: 300  # hvor mange nye tokens som skal genereres (var 200)
-  temperature: 0.65  # styrer hvor tilfeldig output er. (var 0.7)
+  temperature: 0.7  # styrer hvor tilfeldig output er. (var 0.7)
   do_sample: true  # om vi sampler eller velger mest sannsynlige token
-  top_k: 30  # sample kun fra de k mest sannsynlige tokenene. (var 40)
+  top_k: 40  # sample kun fra de k mest sannsynlige tokenene. (var 40)
   # top_p: null  # nucleus sampling, Sett til null hvis ubrukt. Tenker å evt prøve å legge den inn senere, siden den er mer vanlig for GPT modeller
   repetition_penalty: 1.25 # Straffer tokens som allerede er brukt, reduserer repetisjon i teksten
   no_repeat_ngram_size: 4 # Hindrer at samme sekvens av x tokens gjentas flere ganger
 
 tokenizer:
   type: "bpe"  # "char" eller "bpe"
-  vocab_size: 512  # størrelse på BPE-vokabular (var 512) (best resultat ved 384)
+  vocab_size: 800  # størrelse på BPE-vokabular (var 512) (best resultat ved 384)
   min_frequency: 1  # minste frekvens for BPE-token (2 har gitt best resultat)
   model_path: models/bpe_tokenizer_train_only.json # hvor tokenizer lagres / lastes fra
