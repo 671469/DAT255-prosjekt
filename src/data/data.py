@@ -31,7 +31,7 @@ def clean_text(text):
         flags=re.DOTALL | re.IGNORECASE, #DOTALL lar .* matche linjeskift
     )
 
-    # fjern all slutttekst etter "End of this Etext"
+    # fjern all slutt-tekst etter "End of this Etext"
     text = re.sub(
         r"End of this Etext.*",
         "",
