@@ -1,15 +1,11 @@
 # DAT255-prosjekt
-De ferdigtrente modellvektene er lagret i vår Hugging Face Space og er ikke inkludert i dette repositoriet på grunn av filstørrelsesbegrensninger.
+The trained model weights are hosted on Hugging Face Spaces and are not included in this repository due to file size limits.
 # ShakespeareGPT
 A transormer model trained from scratch on the complete works of William Shakespeare. 
 
 # Live demo
 Try the live demo: https://huggingface.co/spaces/MH671426/shakespeareGPT
 
-# How to run 
-Last ned følgende filer fra Hugging Face Space:
--"shakespeare_model.pt"
--"bpe_tokenizer_train_only.json"
-
-Plasser filene i "models/" mappen
-Når dette er gjort, kan du kjøre evaluering eller tekstgenerering som vanlig.
+# How to run locally
+1- Download shakespeare_model.pt and bpe_tokenizer_train_only.json from the Hugging Face Space
+2- Place them in a models/ folder in the project root
