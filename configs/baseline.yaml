@@ -2,13 +2,13 @@ model:
   n_layers: 8  #Transformer-blokker (var 4)
   n_heads: 8  #attention heads i hver transformer layer (var 4)
   d_model: 512   #dimensjonen på embeddding aka n_embd (var 128)
-  context_length: 384   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
+  context_length: 512   #hvor mange tokens modellen ser samtidig, aka block_size (var 128)
   ff_mult: 4 #Hvor mye vi utvider embedding-dimensjonen i feed-forward-laget
   dropout: 0.30 #Dropout i modellen. Satt til 0.0 for nå aka ingen effekt før vi begynner å tweake.
 
 training:
-  batch_size: 8  #hvor mange sekvenser pr treningsstep (var 32, eller 24 i de fleste av forsøkene)
-  lr: 8e-5  #learning rate (var 3e-4)
+  batch_size: 24  #hvor mange sekvenser pr treningsstep (var 32, eller 24 i de fleste av forsøkene)
+  lr: 1e-4  #learning rate (var 3e-4)
   max_iters: 300000  #hvor mange treningsteps. SKal stå 15000 her
   eval_interval: 200  # Hvor ofte vi evaluerer og logger. Skal stå 100 her (var 100)
   eval_iters: 100  # Hvor mange batches vi bruker når vi estimerer loss (var 20)
@@ -16,7 +16,7 @@ training:
   weight_decay: 0.02 # Weight decay for regularisering i AdamW
   grad_clip: 1.0 # Klipper gradientnormen for å unngå eksploderende gradients, (feks 1.0)
   early_stopping: true  # Stopper trening hvis val-loss ikke forbedres
-  patience: 20  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 20)
+  patience: 50  # Hvor mange eval-runder vi tåler uten forbedring, aka hvor lenge skal vi vente. (var 20)
   min_delta: 0.0005  # Minste forbedring i val-loss som teller som ekte forbedring, aka hva er "forbedring". (var 0.001)
   train_ratio: 0.9 # Andel av data som brukes til trening
   val_ratio: 0.05 # Andel av data som brukes til validering (resten brukes til test)
